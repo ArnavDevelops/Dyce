@@ -7,9 +7,9 @@ module.exports = {
     .setDMPermission(false),
   async execute(interaction, client) {
     let circles = {
-      good: "<:WiFi_Good:1123986555430780948>",
-      okay: "<:WiFi_Okay:1123987177764835359>",
-      bad: "<:WiFi_Bad:1123987088442929294>",
+      good: "<:WiFi_Online:1231374139621900362>",
+      okay: "<:WiFi_PerformanceIssues:1231374366164647986>",
+      bad: "<:WiFi_Offline:1231374258794397788>",
     };
 
     await interaction.deferReply();
