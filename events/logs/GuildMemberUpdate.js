@@ -57,12 +57,14 @@ module.exports = {
           })
           .then((a) => a.entries.first());
         const executor = auditlog2 ? auditlog2.executor : null;
+        const { reason } = auditlog2;
 
         const embed = new EmbedBuilder()
           .setColor("Green")
           .setTitle("Member untimed out")
           .setDescription(
-            `**Member:**\n ${newMember.user.username} (${newMember.id})`
+            `**Member:**\n ${newMember.user.username} (${newMember.id})\n
+            **Reason**:\n ${reason}`
           )
           .setThumbnail(newMember.user.avatarURL())
           .setFooter({

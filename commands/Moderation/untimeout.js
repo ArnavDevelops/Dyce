@@ -11,11 +11,15 @@ module.exports = {
     .setDMPermission(false)
     .addUserOption((user) =>
       user.setName("user").setDescription("Select the user.").setRequired(true)
+    )
+    .addStringOption((reason) =>
+      reason.setName("reason").setDescription("Please provide a reason for it.").setRequired(true)
     ),
   async execute(interaction, client) {
     try {
       const { options, guild, member } = interaction;
       const untimeMember = options.getMember("user");
+      const reason = options.getString("reason")
 
       const permission = member.permissions.has(
         PermissionsBitField.Flags.ModerateMembers
@@ -53,13 +57,14 @@ module.exports = {
       )
         return await interaction.reply({ embeds: [embed4], ephemeral: true });
 
-      await untimeMember.timeout(null);
+      await untimeMember.timeout(null, reason);
 
       const dmEmbed = new EmbedBuilder()
         .setColor("Green")
         .setDescription(
           `***⏳ Your timeout has been removed in ${guild.name} by ${member.user.username}***`
-        );
+        )
+        .addFields({ name: "Reason", value: reason });
       await untimeMember.send({ embeds: [dmEmbed] }).catch((err) => {
         return;
       });
@@ -68,7 +73,8 @@ module.exports = {
         .setColor("Green")
         .setDescription(
           `***⌛ ${untimeMember.user.username}'s timeout has been removed***`
-        );
+        )
+        .addFields({ name: "Reason", value: reason });
       await interaction.reply({ embeds: [embed1] });
     } catch (err) {
       const embed2 = new EmbedBuilder()
