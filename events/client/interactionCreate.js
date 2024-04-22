@@ -19,34 +19,6 @@ module.exports = {
       try {
         await command.execute(interaction, client);
       } catch (error) {
-        console.error(error.stack);
-
-        //Error being logged in a channel
-        const channel = client.channels.cache.get("1147537207456968909");
-
-        const embed = new EmbedBuilder()
-          .setColor("Yellow")
-          .setTimestamp()
-          .setFooter({ text: "Error Reported At" })
-          .setTitle("Command Execution Error")
-          .setDescription("An error occurred while executing the command.")
-          .addFields(
-            {
-              name: "> •   Command",
-              value: `\`\`\`${interaction.commandName}\`\`\``,
-            },
-            {
-              name: "> •   Triggered By",
-              value: `\`\`\`${interaction.user.username}\`\`\``,
-            },
-            { name: "> •   Error Stack", value: `\`\`\`${error.stack}\`\`\`` },
-            {
-              name: "> •   Error Message",
-              value: `\`\`\`${error.message}\`\`\``,
-            }
-          );
-        await channel.send({ embeds: [embed] });
-
         await interaction.deferReply({ ephemeral: true });
         const commandErrorEmbed = new EmbedBuilder()
           .setColor("Red")
@@ -57,6 +29,7 @@ module.exports = {
           embeds: [commandErrorEmbed],
           ephemeral: true,
         });
+        return;
       }
     }
 

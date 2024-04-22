@@ -119,7 +119,9 @@ module.exports = {
 
       
       await interaction.deferReply()
-      return await interaction.followUp({ embeds: [embed1] });
+      return await interaction.followUp({ embeds: [embed1] }).catch((err) => {
+        return;
+      });
 
     } catch (err) {
       const embed2 = new EmbedBuilder()

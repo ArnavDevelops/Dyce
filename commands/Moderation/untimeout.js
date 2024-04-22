@@ -75,7 +75,10 @@ module.exports = {
           `***⌛ ${untimeMember.user.username}'s timeout has been removed***`
         )
         .addFields({ name: "Reason", value: reason });
-      await interaction.reply({ embeds: [embed1] });
+      await interaction.reply({ embeds: [embed1] }).catch((err) => {
+        return;
+      });
+      
     } catch (err) {
       const embed2 = new EmbedBuilder()
         .setDescription("***:warning: This user is not in this server.***")

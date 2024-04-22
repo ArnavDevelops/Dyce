@@ -313,7 +313,7 @@ module.exports = {
       if (!targetMember.roles.cache.has(role.id)) {
         const embed1 = new EmbedBuilder()
           .setDescription(
-            "***:x: Make the user has the role you've mentioned.***"
+            "***:x: Make sure that the user has the role you've mentioned.***"
           )
           .setColor(`Red`);
         return await interaction.reply({ embeds: [embed1], ephemeral: true });
@@ -326,7 +326,7 @@ module.exports = {
           )
           .setColor("Green");
         interaction.reply({ embeds: [embed] });
-      } catch (error) {
+      } catch (error) {    
         return;
       }
     }
