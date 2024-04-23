@@ -14,6 +14,17 @@ module.exports = {
 
     await interaction.deferReply();
 
+    if (interaction.user.id !== "947568482407546991") {
+      const permissionEmbed = new EmbedBuilder()
+        .setDescription(
+          "***:warning: Only the owner of Dyce can run this command.***"
+        )
+        .setColor(`Red`);
+      await interaction.followUp({
+        embeds: [permissionEmbed],
+        ephemeral: true,
+      });
+    }
     const pinging = await interaction.editReply({ content: "Pinging..." });
 
     const ws = interaction.client.ws.ping;

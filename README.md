@@ -10,7 +10,6 @@
 - [X] Moderation Commands (i.e., ban, timeout, warn, etc.)
 - [ ] Management Commands (i.e., embeds, logs, etc.)
 - [X] Community Commands (i.e., avatar, memberinfo, serverinfo, etc.)
-- [ ] Developer Only (dev) Commands (i.e., serverlist)
 - [ ] Ticket System?
 - [ ] Bot Website?
 
