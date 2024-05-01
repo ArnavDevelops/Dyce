@@ -4,7 +4,6 @@ const {
   PermissionsBitField,
 } = require("discord.js");
 const ModSchema = require("../../schemas/warnModel.js");
-const moment = require("moment");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -42,28 +41,45 @@ module.exports = {
 
     const noWarnings = new EmbedBuilder()
       .setDescription(
-        `***:warning: ${
-          warn.username || warn.user.username
+        `***:warning: ${warn.username || warn.user.username
         } has no warnings.***`
       )
       .setColor("Red");
     if (userWarnings.length < 1)
-      return interaction.reply({ embeds: [noWarnings], ephemeral: true });
+      return interaction.reply({ embeds: [noWarnings] })
 
-    const embedDescription = userWarnings
-      .map((warn) => {
-        return [
-          `**warn ID:** ${warn.id}`,
-          `**Date:** ${moment(warn.timestamp).format("MMMM Do YYYY")}`,
-          `**Reason:** ${warn.reason}`,
-        ].join("\n");
-      })
-      .join("\n\n");
+    if (interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
+      const embedDescription = userWarnings
+        .map((warn) => {
+          return [
+            `**warn ID:** ${warn.id}`,
+            `**Date:** <t:${Math.round(warn.timestamp / 1000)}>`,
+            `**Reason:** ${warn.reason}`,
+          ].join("\n");
+        })
+        .join("\n\n");
 
-    const embed = new EmbedBuilder()
-      .setTitle(`***${warn.username || warn.user.username}'s warnings***`)
-      .setDescription(embedDescription)
-      .setColor("Yellow");
-    interaction.reply({ embeds: [embed] });
+      const embed = new EmbedBuilder()
+        .setTitle(`***${warn.username || warn.user.username}'s warnings***`)
+        .setDescription(embedDescription)
+        .setColor("Yellow");
+      interaction.reply({ embeds: [embed] });
+    } else {
+      const embedDescription = userWarnings
+        .map((warn) => {
+          return [
+            `**Date:** <t:${Math.round(warn.timestamp / 1000)}>`,
+            `**Reason:** ${warn.reason}`,
+          ].join("\n");
+        })
+        .join("\n\n");
+
+      const embed = new EmbedBuilder()
+        .setTitle(`***${warn.username || warn.user.username}'s warnings***`)
+        .setDescription(embedDescription)
+        .setColor("Yellow")
+        .setFooter({ text: "WarnID is hidden as the Command user is not a Moderator", iconURL: `${warn.avatarURL() || warn.user.avatarURL()}` })
+      interaction.reply({ embeds: [embed] });
+    }
   },
 };
