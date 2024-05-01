@@ -29,7 +29,7 @@ module.exports = {
           embeds: [commandErrorEmbed],
           ephemeral: true,
         });
-        return;
+        console.log(error)
       }
     }
 

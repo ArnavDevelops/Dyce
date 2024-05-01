@@ -36,7 +36,7 @@ module.exports = {
       const button = new ButtonBuilder()
         .setLabel('Download')
         .setStyle(ButtonStyle.Link)
-        .setURL(user.avatarURL())
+        .setURL(user.avatarURL({ size: 2048 }))
 
       const button2 = new ButtonBuilder()
         .setCustomId('tryuserinfo')

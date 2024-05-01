@@ -61,7 +61,7 @@ module.exports = {
                 .setRequired(false)
         ),
     async execute(interaction, client) {
-        const { options, guild } = interaction;
+        const { options, guild, member } = interaction;
 
         const title = options.getString("title")
         const description = options.getString("description")
