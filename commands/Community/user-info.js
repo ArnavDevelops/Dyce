@@ -24,21 +24,28 @@ module.exports = {
     const created = user.createdAt;
 
       const button = new ButtonBuilder()
-        .setCustomId("member_roles")
+        .setCustomId(`member_roles-${user.id}`)
         .setLabel("View Roles")
+        .setEmoji("💁")
         .setStyle(ButtonStyle.Primary);
-      const row = new ActionRowBuilder().addComponents(button);
+
+        const button2 = new ButtonBuilder()
+        .setCustomId(`badges-${user.id}`)
+        .setLabel("View Badges")
+        .setEmoji("🔰")
+        .setStyle(ButtonStyle.Secondary);
+      const row = new ActionRowBuilder().addComponents(button, button2);
 
       let status =
-        member.presence?.status || user.presence?.status || "Invisible";
+        member.presence?.status || user.presence?.status || "<:invisible_offline_blank:1234893868562907259> Invisible"
       if (status === "dnd") {
-        status = "🔴 Do not Disturb";
+        status = "<:dnd_blank:1234902957129072741> Do not Disturb";
       }
       if (status === "idle") {
-        status = "🟡 Idle";
+        status = "<:Idle:1234902778472824877> Idle";
       }
       if (status === "online") {
-        status = "🟢 Online";
+        status = "<:online_blank:1234902595940778045> Online";
       }
 
       const embed = new EmbedBuilder()
