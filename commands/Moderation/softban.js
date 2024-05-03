@@ -7,7 +7,8 @@ const {
     ActionRowBuilder,
 } = require("discord.js");
 const ms = require("ms")
-const softbanSchema = require("../../schemas/softbanSchema.js")
+const softbanSchema = require("../../schemas/softbanSchema.js");
+const softbanRoleSchema = require("../../schemas/softbanRoleSchema.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -57,21 +58,41 @@ module.exports = {
             const banMember = await guild.members.fetch(banUser)
             const reason = options.getString("reason")
             const duration = options.getString("duration");
-            //const data = await softbanSchema.findOne({
-                //guildId: guild.id,
-                //duration: ms(duration),
-             //});
-            //if(!data) return;
-            const role = guild.roles.cache.get(r => r.name === "softban");
-            if(!role) {
+            const softbanRoleData = await softbanRoleSchema.findOne({
+                guildId: guild.id,
+            });
+            if (!softbanRoleData) {
+                const button = new ButtonBuilder()
+                    .setCustomId("softban")
+                    .setLabel("Create role?")
+                    .setStyle(ButtonStyle.Primary)
+                const row = new ActionRowBuilder().addComponents(button);
+2
                 const embed = new EmbedBuilder()
-                .setColor("Red")
-                .setDescription(
-                    "***:warning: No `softban` role for this command to be executed!***"
-                ); 
+                    .setColor("Red")
+                    .setDescription(
+                        "***:warning: No `softban` role for this command to be executed!***"
+                    );
 
-                interaction.reply({ embeds: [embed], ephemeral: true})
+                await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
             }
+            const role = guild.roles.cache.get(softbanRoleData.roleId);
+            console.log(softbanRoleData.roleId)
+            if (!role) {
+                const embed = new EmbedBuilder()
+                    .setColor("Red")
+                    .setDescription(
+                        "***:warning: No role assigned for this command to be executed.***"
+                    );
+
+                await interaction.reply({ embeds: [embed], ephemeral: true });
+            }
+
+            const data = await softbanSchema.findOne({
+                guildId: guild.id,
+                userId: banUser.id,
+            });
+
             const permission = member.permissions.has(
                 PermissionsBitField.Flags.BanMembers
             );
@@ -115,44 +136,59 @@ module.exports = {
                 });
             }
 
-            const dmEmbed = new EmbedBuilder()
-                .setColor("Red")
-                .setDescription(
-                    `:warning: You have been softbanned in **${guild.name}** by ${member.user.username} for ${duration}`
-                )
-                .addFields({
-                    name: "Reason",
-                    value: `${reason}`,
-                })
-            await banMember.send({ embeds: [dmEmbed] }).catch((err) => {
-                console.log(err)
-            });
+            if (banMember.roles.cache.has(role.id)) {
+                const embed = new EmbedBuilder()
+                    .setColor("Red")
+                    .setDescription("***:x: The user is already softbanned.***");
+                return await interaction.reply({
+                    embeds: [embed],
+                    ephemeral: true,
+                });
+            }
 
-            const embed = new EmbedBuilder()
-                .setColor("Red")
-                .setDescription(
-                    `:white_check_mark: Successfully softbanned ***${banUser.username} for ${duration}***`
-                )
-                .addFields({
-                    name: "Reason",
-                    value: `${reason}`,
-                })
-                .setFooter({ iconURL: "https://cdn.discordapp.com/emojis/1233294833389539390.webp?size=80&quality=lossless", value: "Softban makes a user unable to see most channels" })
-            await interaction.reply({ embeds: [embed] });
+            if (!banMember.roles.cache.has(role.id)) {
+                const dmEmbed = new EmbedBuilder()
+                    .setColor("Red")
+                    .setDescription(
+                        `:warning: You have been softbanned in **${guild.name}** by ${member.user.username} for ${duration}`
+                    )
+                    .addFields({
+                        name: "Reason",
+                        value: `${reason}`,
+                    })
+                await banMember.send({ embeds: [dmEmbed] }).catch((err) => {
+                    return;
+                });
 
-            await banMember.roles.add(role);
+                const embed = new EmbedBuilder()
+                    .setColor("Red")
+                    .setDescription(
+                        `:white_check_mark: Successfully softbanned ***${banUser.username} for ${duration}***`
+                    )
+                    .addFields({
+                        name: "Reason",
+                        value: `${reason}`,
+                    })
+                    .setFooter({ iconURL: "https://cdn.discordapp.com/emojis/1233294833389539390.webp?size=80&quality=lossless", text: "Softban makes a user unable to see most channels" })
+                await interaction.reply({ embeds: [embed] });
 
-            setTimeout(function() {
+                await banMember.roles.add(role);
+
+                if (!data) {
+                    new softbanSchema({
+                        guildId: guild.id,
+                        userId: banUser.id,
+                        duration: duration,
+                    }).save();
+                }
+            }
+
+            setTimeout(async() => {
                 banMember.roles.remove(role)
-            }), ms(duration)
-
-            await softbanSchema.create({
-                guildId: guild.id,
-                userId: banUser.id,
-                duration: duration,
-            });
+                await softbanSchema.deleteOne({ userId: banUser.id, guildId: guild.id })
+            }, ms(duration || data.duration))
         } catch (err) {
-            console.log(err)
+            return;
         }
     }
 }
