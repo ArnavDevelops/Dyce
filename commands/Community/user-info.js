@@ -37,7 +37,7 @@ module.exports = {
       const row = new ActionRowBuilder().addComponents(button, button2);
 
       let status =
-        member.presence?.status || user.presence?.status || "<:invisible_offline_blank:1234893868562907259> Invisible"
+        member.presence?.status || user.presence?.status || "<:invisible_offline_blank:1234893868562907259> Offline/Invisible"
       if (status === "dnd") {
         status = "<:dnd_blank:1234902957129072741> Do not Disturb";
       }
