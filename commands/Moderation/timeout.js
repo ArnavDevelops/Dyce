@@ -3,6 +3,7 @@ const {
   EmbedBuilder,
   PermissionsBitField,
 } = require("discord.js");
+const modNotesSchema = require("../../schemas/modNotesSchema.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -43,12 +44,19 @@ module.exports = {
         .setName("reason")
         .setDescription("Please provide a reason for it.")
         .setRequired(true)
+    )
+    .addStringOption((note) =>
+      note
+        .setName("note")
+        .setDescription("Any notes regarding this action?")
+        .setRequired(false)
     ),
   async execute(interaction, client) {
     try {
       const { options, guild, member } = interaction;
       const timeMember = options.getMember("user");
       const duration = options.getString("duration");
+      const note = options.getString("note");
 
       const permission = member.permissions.has(
         PermissionsBitField.Flags.ModerateMembers
@@ -117,11 +125,21 @@ module.exports = {
         )
         .addFields({ name: `Reason`, value: `${reason}` });
 
-      
+
       await interaction.deferReply()
-      return await interaction.followUp({ embeds: [embed1] }).catch((err) => {
+      await interaction.followUp({ embeds: [embed1] }).catch((err) => {
         return;
       });
+
+      if (note) {
+        new modNotesSchema({
+          guildId: guild.id,
+          moderatorId: interaction.user.id,
+          command: "/timeout",
+          date: Date.now(),
+          note: `Moderated: ${timeMember.user.username} | **${note}**`
+        }).save()
+      }
 
     } catch (err) {
       const embed2 = new EmbedBuilder()

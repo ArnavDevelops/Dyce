@@ -4,6 +4,7 @@ const {
   PermissionsBitField,
 } = require("discord.js");
 const warnModel = require("../../schemas/warnModel.js");
+const modNotesSchema = require("../../schemas/modNotesSchema.js")
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -18,6 +19,12 @@ module.exports = {
         .setName("reason")
         .setDescription("Provide a reason.")
         .setRequired(true)
+    )
+    .addStringOption((reason) =>
+      reason
+        .setName("note")
+        .setDescription("Any notes for this action?.")
+        .setRequired(false)
     ),
   async execute(interaction, client) {
     const { options, member, guild } = interaction;
@@ -33,6 +40,7 @@ module.exports = {
     });
     if (!user) return;
     const reason = options.getString("reason");
+    const note = options.getString('note');
 
     const permission = member.permissions.has(
       PermissionsBitField.Flags.ManageMessages
@@ -96,5 +104,15 @@ module.exports = {
       )
       .setColor("Green");
     interaction.reply({ embeds: [DMembed] });
+
+    if (note) {
+      new modNotesSchema({
+        guildId: guild.id,
+        moderatorId: interaction.user.id,
+        command: "/warn",
+        date: Date.now(),
+        note: `Moderated: ${user.user.username} | **${note}**`
+      }).save()
+    }
   },
 };

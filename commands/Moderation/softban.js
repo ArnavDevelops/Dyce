@@ -9,6 +9,7 @@ const {
 const ms = require("ms")
 const softbanSchema = require("../../schemas/softbanSchema.js");
 const softbanRoleSchema = require("../../schemas/softbanRoleSchema.js");
+const modNotesSchema = require("../../schemas/modNotesSchema.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -49,6 +50,12 @@ module.exports = {
                     { name: "5 Days", value: "5d" },
                     { name: "One Week", value: "7d" }
                 )
+        )
+        .addStringOption((reason) =>
+        reason
+          .setName("note")
+          .setDescription("Any notes for this action?.")
+          .setRequired(false)
         ),
     async execute(interaction, client) {
         const { options, guild, member } = interaction;
@@ -58,9 +65,11 @@ module.exports = {
             const banMember = await guild.members.fetch(banUser)
             const reason = options.getString("reason")
             const duration = options.getString("duration");
+            const note = options.getString("note");
             const softbanRoleData = await softbanRoleSchema.findOne({
                 guildId: guild.id,
             });
+
             if (!softbanRoleData) {
                 const button = new ButtonBuilder()
                     .setCustomId("softban")
@@ -77,7 +86,6 @@ module.exports = {
                 await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
             }
             const role = guild.roles.cache.get(softbanRoleData.roleId);
-            console.log(softbanRoleData.roleId)
             if (!role) {
                 const embed = new EmbedBuilder()
                     .setColor("Red")
@@ -187,6 +195,16 @@ module.exports = {
                 banMember.roles.remove(role)
                 await softbanSchema.deleteOne({ userId: banUser.id, guildId: guild.id })
             }, ms(duration || data.duration))
+
+            if (note) {
+                new modNotesSchema({
+                  guildId: guild.id,
+                  moderatorId: interaction.user.id,
+                  command: "/softban",
+                  date: Date.now(),
+                  note: `Moderated: ${banMember.user.username} | **${note}**`
+                }).save()
+            }
         } catch (err) {
             return;
         }

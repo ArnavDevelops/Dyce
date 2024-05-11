@@ -3,6 +3,7 @@ const {
   EmbedBuilder,
   PermissionsBitField,
 } = require("discord.js");
+const modNotesSchema = require("../../schemas/modNotesSchema.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -22,6 +23,12 @@ module.exports = {
         .setName("reason")
         .setDescription("Provide a reason for it.")
         .setRequired(true)
+    )
+    .addStringOption((reason) =>
+    reason
+      .setName("note")
+      .setDescription("Any notes for this action?.")
+      .setRequired(false)
     ),
   async execute(interaction, client) {
     const { member, options, guild } = interaction;
@@ -101,6 +108,16 @@ module.exports = {
       interaction.reply({ embeds: [embed] });
 
       await kickMember.kick({ reason: reason });
+
+      if (note) {
+        new modNotesSchema({
+          guildId: guild.id,
+          moderatorId: interaction.user.id,
+          command: "/kick",
+          date: Date.now(),
+          note: `Moderated: ${kickMember.user.username} | **${note}**`
+        }).save()
+      }
     } catch (err) {
       return;
     }

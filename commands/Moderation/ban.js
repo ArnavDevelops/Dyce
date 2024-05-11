@@ -3,6 +3,7 @@ const {
   EmbedBuilder,
   PermissionsBitField,
 } = require("discord.js");
+const modNotesSchema = require("../../schemas/modNotesSchema.js")
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -34,6 +35,12 @@ module.exports = {
         .setName("delete_messages")
         .setDescription("Delete messages?")
         .setRequired(false)
+    )
+    .addStringOption((reason) =>
+    reason
+      .setName("note")
+      .setDescription("Any notes for this action?.")
+      .setRequired(false)
     ),
   async execute(interaction, client) {
     const { member, options } = interaction;
@@ -173,6 +180,16 @@ module.exports = {
           (m) => m.author.id === banMember.user.id
         );
         return await interaction.channel.bulkDelete(userMessages, true);
+      }
+
+      if (note) {
+        new modNotesSchema({
+          guildId: guild.id,
+          moderatorId: interaction.user.id,
+          command: "/ban",
+          date: Date.now(),
+          note: `Moderated: ${banMember.user.username} | **${note}**`
+        }).save()
       }
     } catch (err) {
       return;
