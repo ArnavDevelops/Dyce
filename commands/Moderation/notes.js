@@ -57,7 +57,7 @@ module.exports = {
         if (!userInGuild.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
             const embed = new EmbedBuilder()
                 .setColor("Red")
-                .setDescription(":warning: Users without the permission `ModerateMembers` cannot run this Command.")
+                .setDescription("***:warning: Users without the permission `ModerateMembers` cannot run this Command.***")
             return interaction.reply({ embeds: [embed], ephemeral: true })
         }
         const noNotes = new EmbedBuilder()
@@ -70,13 +70,13 @@ module.exports = {
             return interaction.reply({ embeds: [noNotes] });
 
         const previousButton = new ButtonBuilder()
-            .setCustomId(`notesBoard:previous:${page}`)
+            .setCustomId(`notesBoard:previous:${moderator.id || moderator.user.id}:${page}`)
             .setLabel("⬅️")
             .setStyle(ButtonStyle.Primary)
             .setDisabled(page === 1);
 
         const nextButton = new ButtonBuilder()
-            .setCustomId(`notesBoard:next:${page}`)
+            .setCustomId(`notesBoard:next:${moderator.id || moderator.user.id}:${page}`)
             .setLabel("➡️")
             .setStyle(ButtonStyle.Primary)
             .setDisabled(data.length < notesPerPage);

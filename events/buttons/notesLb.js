@@ -16,10 +16,14 @@ module.exports = {
 
         if (customId && customId.startsWith("notesBoard:")) {
             let page;
-            if (customId.startsWith("notesBoard:next:"))
-                page = parseInt(customId.split(`:`)[2]) + 1;
-            else if (customId.startsWith(`notesBoard:previous:`))
-                page = parseInt(customId.split(`:`)[2]) - 1;
+            let moderator
+            if (customId.startsWith("notesBoard:next:")) {
+                page = parseInt(customId.split(`:`)[3]) + 1;
+                moderator = guild.members.cache.get(customId.split(`:`)[2])
+            } else if (customId.startsWith(`notesBoard:previous:`)) {
+                page = parseInt(customId.split(`:`)[3]) - 1;
+                moderator = guild.members.cache.get(customId.split(`:`)[2])
+            }
 
 
             const permission = interaction.member.permissions.has(
@@ -37,14 +41,12 @@ module.exports = {
             const notesPerPage = 5;
             const notesToSkip = (page - 1) * notesPerPage;
             const data = await modNotesSchema
-                .find()
+                .find({ guildId: interaction.guild.id, moderatorId: moderator.id || moderator.user.id })
                 .limit(notesPerPage)
                 .skip(notesToSkip);
 
             let notesBoard = ``;
             let notes = notesToSkip + 1;
-
-            const moderator = guild.members.cache.get(data.moderatorId) || interaction.user;
 
             for (const moderator of data) {
                 notesBoard += [
@@ -57,19 +59,19 @@ module.exports = {
 
             const row = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
-                    .setCustomId(`notesBoard:previous:${page}`)
+                    .setCustomId(`notesBoard:previous:${moderator.id || moderator.user.id}:${page}`)
                     .setLabel(`⬅️`)
                     .setStyle(ButtonStyle.Primary)
                     .setDisabled(page === 1),
                 new ButtonBuilder()
-                    .setCustomId(`notesBoard:next:${page}`)
+                    .setCustomId(`notesBoard:next:${moderator.id || moderator.user.id}:${page}`)
                     .setLabel(`➡️`)
                     .setStyle(ButtonStyle.Primary)
                     .setDisabled(data.length < notesPerPage)
             );
 
             const embed = new EmbedBuilder()
-                .setTitle(`***${moderator.username || moderator.user.username}'s Notes***`)
+                .setTitle(`***${moderator.user.username || moderator.username}'s Notes***`)
                 .setDescription(notesBoard)
                 .setColor("Yellow");
 
