@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, Poll, PollLayoutType } = require("discord.js");
 const logSchema = require("../../schemas/logSchema.js");
 
 module.exports = {
@@ -13,7 +13,7 @@ module.exports = {
       const logChannel = message.guild.channels.cache.get(logData.Channel);
       if (!logChannel) return;
 
-      let content = `**${message.author.username}** (${message.author.id}) deleted their message in #${message.channel.name}\n` +
+      let content = `**${message.author.username}** (${message.author.id}) deleted a message in #${message.channel.name}\n` +
       `\n**Channel**\n<#${message.channel.id}>\n` +
       `\n**Message:**\n${message.content || "No Message"}\n`;
 
@@ -26,6 +26,9 @@ module.exports = {
         });
       }
 
+      if (message.poll) {
+        content += `\n**Poll with question "${message.poll.question.text}" was deleted in <#${message.channel.id}>:**\n> Poll result date: <t:${Math.floor(message.poll.expiresAt / 1000)}> | <t:${Math.floor(message.poll.expiresAt /1000)}:R>\n> Poll started by: **${message.author.username}** (${message.author.id})`
+      }
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setAuthor({
@@ -41,7 +44,7 @@ module.exports = {
 
       await logChannel.send({ embeds: [embed] });
     } catch (err) {
-      return;
+      console.log(err)
     }
   },
 };
