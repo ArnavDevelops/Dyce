@@ -6,6 +6,7 @@ const {
 } = require("discord.js");
 const eventsSchema = require("../../schemas/eventsSchema.js");
 const { logMessage } = require("../../helpers/logging.js");
+const eventsRoleSchema = require("../../schemas/eventsRoleSchema.js")
 
 module.exports = {
   name: "interactionCreate",
@@ -16,7 +17,8 @@ module.exports = {
     if (!guild) return;
     if (!interaction.isButton()) return;
 
-    const officerrole = "1188623538173792286";
+    const eventsRoleData = await eventsRoleSchema.findOne({ guildId: guild.id });
+    const role = guild.roles.cache.get(eventsRoleData.roleId);
 
     const joinButton = new ButtonBuilder()
       .setCustomId("join")
@@ -168,11 +170,7 @@ module.exports = {
           });
         }
       } else if (customId == "cancel") {
-        if (
-          !interaction.member._roles.some((role) =>
-            officerrole.includes(role)
-          )
-        ) {
+        if (!interaction.member.roles.cache.has(role.id)) {
           const errorEmbed = new EmbedBuilder()
             .setColor("Red")
             .setDescription(

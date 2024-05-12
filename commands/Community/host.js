@@ -8,6 +8,8 @@ const {
 } = require("discord.js");
 const ms = require("ms");
 const eventSchema = require("../../schemas/eventsSchema.js");
+const eventsRoleSchema = require("../../schemas/eventsRoleSchema.js");
+
 require("dotenv").config();
 
 module.exports = {
@@ -63,23 +65,30 @@ module.exports = {
     ),
   async execute(interaction, client) {
     const { options, member, user, channel, guild } = interaction;
-    const psf = client.guilds.cache.get(process.env.guildId)
-    const officerrole = "1188623538173792286";
 
-    if (!member.roles.cache.has(officerrole)) {
-      const permissionEmbed = new EmbedBuilder()
-        .setColor("Red")
-        .setDescription(
-          "***:warning: You don't have the required eventping to use this command.***"
-        );
-      return interaction.reply({ embeds: [permissionEmbed], ephemeral: true });
+    const data = await eventsRoleSchema.findOne({ guildId: guild.id });
+    if (!data || !data.roleId) {
+      const embed = new EmbedBuilder()
+        .setDescription("***:warning: There's no host role set. Please run /host-role***")
+        .setColor("Red");
+      return await interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
     const name = options.getString("title");
     const startTime = ms(options.getString("start_time") || "");
     const endTime = ms(options.getString("end_time") || "");
-    const eventping = psf.roles.cache.get(`1189662140055953498`)
+    const role = guild.roles.cache.get(data.roleId)
     const description = options.getString("description");
+
+    if (!member.roles.cache.has(role.id)) {
+      const permissionEmbed = new EmbedBuilder()
+        .setColor("Red")
+        .setDescription(
+          `***:warning: You don't have the required role to use this command.***`
+        )
+        .setFooter({ iconURL: "https://cdn.discordapp.com/attachments/1230995581703557163/1231156505580011613/pngimg.com_-_dice_PNG49.png?ex=6635eed8&is=662379d8&hm=1164fed4c3fe58ec4e9f18378e74e938f21f3dd513c06085d1ae336c1c55a63c&", text: "If you think this server doesn't have that role then run /host-role" })
+      return interaction.reply({ embeds: [permissionEmbed], ephemeral: true });
+    }
 
     const joinButton = new ButtonBuilder()
       .setCustomId("join")
@@ -148,7 +157,6 @@ module.exports = {
     await interaction.reply({ embeds: [SHEembed], ephemeral: true });
 
     const message = await channel.send({
-      content: `${eventping}`,
       embeds: [trainingEmbed],
       components: [buttonRow],
     });
