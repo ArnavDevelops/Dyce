@@ -2,6 +2,9 @@ const {
   SlashCommandBuilder,
   EmbedBuilder,
   PermissionsBitField,
+  ActionRowBuilder,
+  ButtonStyle,
+  ButtonBuilder
 } = require("discord.js");
 const ModSchema = require("../../schemas/warnModel.js");
 
@@ -18,10 +21,12 @@ module.exports = {
     const warn = options.getMember("user") || interaction.user;
     const userInGuild = guild.members.cache.get(warn.id);
 
-    const userWarnings = await ModSchema.find({
-      userId: warn.id,
-      guildId: guild.id,
-    });
+    let warnsBoard;
+    const page = 1;
+    const warnsPerPage = 5;
+    const warnsToSkip = (page - 1) * warnsPerPage;
+
+    const userWarnings = await ModSchema.find({ guildId: guild.id, userId: warn.user.id || warn.id }).limit(warnsPerPage).skip(warnsToSkip).exec();
 
     if (userInGuild.user.bot) {
       const embed = new EmbedBuilder()
@@ -34,7 +39,7 @@ module.exports = {
       const embed1 = new EmbedBuilder()
         .setColor("Yellow")
         .setDescription(
-          "***:warning: Moderators and above cannot have any warnings.***"
+          "***:warning: moderators and above cannot have any warnings.***"
         );
       return await interaction.reply({ embeds: [embed1], ephemeral: true });
     }
@@ -48,38 +53,56 @@ module.exports = {
     if (userWarnings.length < 1)
       return interaction.reply({ embeds: [noWarnings] })
 
+
+    let warns = warnsToSkip + 1;
+
+    const previousButton = new ButtonBuilder()
+      .setCustomId(`warnsBoard:previous:${warn.user.id || warn.id}:${page}`)
+      .setLabel("⬅️")
+      .setStyle(ButtonStyle.Primary)
+      .setDisabled(page === 1);
+
+    const nextButton = new ButtonBuilder()
+      .setCustomId(`warnsBoard:next:${warn.user.id || warn.id}:${page}`)
+      .setLabel("➡️")
+      .setStyle(ButtonStyle.Primary)
+      .setDisabled(userWarnings.length < warnsPerPage);
+      
+    const row = new ActionRowBuilder().addComponents(
+      previousButton,
+      nextButton
+    );
+
     if (interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
-      const embedDescription = userWarnings
-        .map((warn) => {
-          return [
-            `**warn ID:** ${warn.id}`,
-            `**Date:** <t:${Math.round(warn.timestamp / 1000)}>`,
-            `**Reason:** ${warn.reason}`,
-          ].join("\n");
-        })
-        .join("\n\n");
+      for (const warn of userWarnings) {
+        warnsBoard += [
+          `**warn ID:** ${warn._id}`,
+          `**Date:** <t:${Math.round(warn.timestamp / 1000)}>`,
+          `**Reason:** ${warn.reason}`,
+        ].join("\n") + "\n\n";
+        warns++;
+      }
 
       const embed = new EmbedBuilder()
         .setTitle(`***${warn.username || warn.user.username}'s warnings***`)
-        .setDescription(embedDescription)
+        .setDescription(warnsBoard)
         .setColor("Yellow");
-      interaction.reply({ embeds: [embed] });
+      interaction.reply({ embeds: [embed], components: [row] });
     } else {
-      const embedDescription = userWarnings
-        .map((warn) => {
-          return [
-            `**Date:** <t:${Math.round(warn.timestamp / 1000)}>`,
-            `**Reason:** ${warn.reason}`,
-          ].join("\n");
-        })
-        .join("\n\n");
+      for (const warn of userWarnings) {
+        warnsBoard += [
+          `**Date:** <t:${Math.round(warn.timestamp / 1000)}>`,
+          `**Reason:** ${warn.reason}`,
+        ].join("\n") + "\n\n";
+        warns++;
+      }
 
       const embed = new EmbedBuilder()
         .setTitle(`***${warn.username || warn.user.username}'s warnings***`)
-        .setDescription(embedDescription)
+        .setDescription(warnsBoard)
         .setColor("Yellow")
-        .setFooter({ text: "WarnID is hidden as the Command user is not a Moderator", iconURL: `${warn.avatarURL() || warn.user.avatarURL()}` })
-      interaction.reply({ embeds: [embed] });
+        .setFooter({ text: "WarnID is hidden as the Command user is not a warn", iconURL: `${warn.avatarURL() || warn.user.avatarURL()}` })
+      interaction.reply({ embeds: [embed], components: [row] });
     }
   },
 };
