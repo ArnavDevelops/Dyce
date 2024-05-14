@@ -1,9 +1,9 @@
 const {
     EmbedBuilder,
-    PermissionsBitField,
 } = require("discord.js");
 const softbanRoleSchema = require("../../schemas/softbanRoleSchema.js")
 const eventRoleSchema = require("../../schemas/eventsRoleSchema.js")
+const joinRoleSchema = require("../../schemas/joinRoleSchema.js");
 
 module.exports = {
     name: "interactionCreate",
@@ -25,13 +25,20 @@ module.exports = {
                 guildId: guild.id,
                 roleId: role.id,
             }).save();
-        } else if(customId == "hostrolebtn") {
+        } else if (customId == "hostrolebtn") {
             await eventRoleSchema.findOneAndDelete({ guildId: guild.id });
 
             const embed = new EmbedBuilder()
                 .setColor('Green')
                 .setDescription("***:white_check_mark: Successfully removed the required role for host. You can re-run the command to set the new required role for this server.***")
-            interaction.reply({ embeds: [embed], ephemeral: true })
+            return await interaction.reply({ embeds: [embed], ephemeral: true })
+        } else if (customId == "joinrolebtn") {
+            await joinRoleSchema.findOneAndDelete({ guildId: guild.id });
+
+            const embed = new EmbedBuilder()
+                .setColor('Green')
+                .setDescription("***:white_check_mark: Successfully removed the role for automatic join role. You can re-run the command to set the new auto join role for this server.***")
+            return await interaction.reply({ embeds: [embed], ephemeral: true })
         }
     }
 }

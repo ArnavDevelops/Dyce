@@ -1,10 +1,20 @@
 const { EmbedBuilder } = require("discord.js");
 const logSchema = require(`../../schemas/logSchema.js`);
+const joinRoleSchema = require("../../schemas/joinRoleSchema.js");
 
 module.exports = {
   name: "guildMemberAdd",
   async execute(member) {
     try {
+      //JoinRole
+      const joinRole = await joinRoleSchema.findOne({ guildId: member.guild.id });
+      if(!joinRole) return;
+
+      if(joinRole) {
+        await member.roles.add(joinRole.roleId)
+      }
+
+      //Log
       const logData = await logSchema.findOne({ Guild: member.guild.id });
       if (!logData) return;
 
