@@ -44,8 +44,8 @@ module.exports = {
             const row = new ActionRowBuilder().addComponents(button)
 
             const embed = new EmbedBuilder()
-                .setTitle("This role is already chosen!")
-                .setDescription("This role is already chosen as the role required to host in this server!")
+                .setTitle("A is already chosen!")
+                .setDescription("A role is already chosen as the role required to host in this server!")
                 .setColor("Red")
             interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
         }
