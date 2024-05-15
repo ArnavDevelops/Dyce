@@ -14,7 +14,7 @@ module.exports = {
                     .setDescription("The following are the Faqs answered by the Developer/Owner.")
                     .addFields([
                         { name: "Where is the support server?", value: "A: https://discord.gg/mjMKFQDDaD" },
-                        { name: "Ping?", value: "A: We don't really have ping command as it doesn't matter (not used by many people)." },
+                        { name: "Ping?", value: "A: Tells you about Bot's ping. Helpful if command responses are slow." },
                         { name: "What is Application did not respond?", value: "A: It means the command you're trying to use has some error. Most of the times it is because the bot is offline <:invisible_offline_blank:1234893868562907259>." },
                         { name: "What is \"Something went wrong while executing this command\"?", value: "A: It means the command has an error, it might take time for the command to get fixed. Join the Support server to stay updated." },
                         { name: "Can this bot prevent alts, racial slurs or raids?", value: "A: No, this bot does not have alt detection or raid prevention. We recommend using automod feature for this." },
