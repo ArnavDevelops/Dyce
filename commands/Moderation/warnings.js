@@ -21,7 +21,7 @@ module.exports = {
     const warn = options.getMember("user") || interaction.user;
     const userInGuild = guild.members.cache.get(warn.id);
 
-    let warnsBoard;
+    let warnsBoard = [""];
     const page = 1;
     const warnsPerPage = 5;
     const warnsToSkip = (page - 1) * warnsPerPage;
