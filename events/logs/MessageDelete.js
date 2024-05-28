@@ -1,4 +1,4 @@
-const { EmbedBuilder, Poll, PollLayoutType } = require("discord.js");
+const { EmbedBuilder, MessageType } = require("discord.js");
 const logSchema = require("../../schemas/logSchema.js");
 
 module.exports = {
@@ -13,9 +13,20 @@ module.exports = {
       const logChannel = message.guild.channels.cache.get(logData.Channel);
       if (!logChannel) return;
 
-      let content = `**${message.author.username}** (${message.author.id}) deleted a message in #${message.channel.name}\n` +
-      `\n**Channel**\n<#${message.channel.id}>\n` +
-      `\n**Message:**\n${message.content || "No Message"}\n`;
+      let content;
+
+      if(message.type !== MessageType.Reply) {
+        content = `**${message.author.username}** (${message.author.id}) deleted a message in #${message.channel.name}\n` +
+        `\n**Channel**\n<#${message.channel.id}>\n` +
+        `\n**Message:**\n${message.content || "No Message"} \n`;
+      } else {
+        const referencedMsg = await message.fetchReference()
+
+        content = `**${message.author.username}** (${message.author.id}) deleted a message in #${message.channel.name}\n` +
+        `\n**Channel**\n<#${message.channel.id}>\n` +
+        `\n**Replying to**\n<@${referencedMsg.author.id}>\n` +
+        `\n**Message:**\n${message.content || "No Message"} \n`;
+      }
 
       if (message.attachments.size > 0) {
         content += "\n**Attachment(s) attached with this Message:**\n";
@@ -29,6 +40,11 @@ module.exports = {
       if (message.poll) {
         content += `\n**Poll with question "${message.poll.question.text}" was deleted in <#${message.channel.id}>:**\n> Poll result date: <t:${Math.floor(message.poll.expiresAt / 1000)}> | <t:${Math.floor(message.poll.expiresAt /1000)}:R>\n> Poll started by: **${message.author.username}** (${message.author.id})`
       }
+      if(message.stickers.size == 1) {
+        const s = message.stickers.first()
+        content += `\n**Sticker**\n[Sticker](${s.url})`
+      }
+
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setAuthor({
