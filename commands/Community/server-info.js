@@ -17,6 +17,7 @@ module.exports = {
     const { name, ownerId, createdTimestamp, memberCount, channels } = guild;
 
     const icon = guild.iconURL();
+    const banner = guild.bannerURL();
     const threads = channels.cache.filter((x) => x.isThread()).size;
     const textChannels = channels.cache.filter(
       (c) => c.type === ChannelType.GuildText
@@ -45,7 +46,7 @@ module.exports = {
       .setStyle(ButtonStyle.Primary);
     const row = new ActionRowBuilder().addComponents(button);
 
-    const serverInfo = new EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setColor("Random")
       .setAuthor({ name: name, iconURL: icon })
       .setThumbnail(icon)
@@ -92,7 +93,10 @@ module.exports = {
         value: `${threads}`,
         inline: true,
       });
+    if(banner !== null && banner !== undefined) {
+        embed.setImage(banner)
+    }
 
-    await interaction.reply({ embeds: [serverInfo], components: [row] });
+    await interaction.reply({ embeds: [embed], components: [row] });
   },
 };

@@ -39,7 +39,7 @@ module.exports = {
     const { member, options, channel } = interaction;
 
     const permission = member.permissions.has(
-      PermissionsBitField.Flags.ManageMessages
+      PermissionsBitField.Flags.ManageMessages || PermissionsBitField.Flags.Administrator
     );
 
     const permissionEmbed = new EmbedBuilder()

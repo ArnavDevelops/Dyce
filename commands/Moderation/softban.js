@@ -183,7 +183,7 @@ module.exports = {
                 await banMember.roles.add(role);
 
                 if (!data) {
-                    new softbanSchema({
+                    await new softbanSchema({
                         guildId: guild.id,
                         userId: banUser.id,
                         duration: duration,

@@ -22,7 +22,7 @@ module.exports = {
         const userInGuild = guild.members.cache.get(moderator.id);
 
         const permission = interaction.member.permissions.has(
-            PermissionsBitField.Flags.ModerateMembers
+            PermissionsBitField.Flags.ModerateMembers || PermissionsBitField.Flags.Administrator
         );
 
         let notesBoard = ``

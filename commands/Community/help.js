@@ -35,6 +35,6 @@ module.exports = {
                 { name: "Moderation", value: "Helps you with commands used by the Moderators - Ban, Kick, etc." },
                 { name: "Community", value: "Helps you with commands that can be used by everyone in the server-avatar, user-info, etc." }
             ])
-        interaction.reply({ embeds: [embed], components: [row] })
+        await interaction.reply({ embeds: [embed], components: [row] })
     }
 }

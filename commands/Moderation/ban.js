@@ -8,13 +8,13 @@ const modNotesSchema = require("../../schemas/modNotesSchema.js")
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("ban")
-    .setDescription("Ban a specific user.")
+    .setDescription("Ban a user.")
     .setDMPermission(false)
     .addUserOption((user) =>
       user
         .setName("user")
         .setDescription(
-          "Select the user you want to ban, you can also use someone's Id."
+          "Select the user you want to ban, you can also use user Id."
         )
         .setRequired(true)
     )
@@ -37,16 +37,16 @@ module.exports = {
         .setRequired(false)
     )
     .addStringOption((reason) =>
-    reason
-      .setName("note")
-      .setDescription("Any notes for this action?.")
-      .setRequired(false)
+      reason
+        .setName("note")
+        .setDescription("Any notes for this action?.")
+        .setRequired(false)
     ),
   async execute(interaction, client) {
-    const { member, options } = interaction;
-    const banUser = options.getUser("user") || options.getUser("user").id;
-    const banMember = await interaction.guild.members
-      .fetch(banUser)
+    const { options } = interaction;
+    const user = options.getUser("user") || options.getUser("user").id;
+    const member = await interaction.guild.members
+      .fetch(user)
       .catch(async (err) => {
         const failEmbed = new EmbedBuilder()
           .setColor("Red")
@@ -56,15 +56,15 @@ module.exports = {
         await interaction.reply({ embeds: [failEmbed], ephemeral: true });
         return null;
       });
-    if (!banMember) return;
+    if (!member) return;
 
     const reason = options.getString("reason");
     const appealable = options.getBoolean("appealable");
-    const deletemsgs = options.getBoolean("delete_messages");
+    const deletemsgs = options.getBoolean("delete_messages") || false;
     let guild = await interaction.guild.fetch();
 
-    const permission = member.permissions.has(
-      PermissionsBitField.Flags.BanMembers
+    const permission = interaction.member.permissions.has(
+      PermissionsBitField.Flags.BanMembers || PermissionsBitField.Flags.Administrator
     );
 
     const permissionEmbed = new EmbedBuilder()
@@ -78,7 +78,7 @@ module.exports = {
         ephemeral: true,
       });
 
-    if (banMember.id == member.id) {
+    if (member.id == interaction.user.id) {
       const cannotbanyourself = new EmbedBuilder()
         .setColor("Red")
         .setDescription("***:x: You can't ban yourself.***");
@@ -88,14 +88,14 @@ module.exports = {
       });
     }
 
-    if (banMember.user.bot) {
+    if (member.user.bot) {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setDescription("***:x: You cannot ban bots.***");
-      return interaction.reply({ embeds: [embed], ephemeral: true });
+      return await interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
-    if (banMember.permissions.has(PermissionsBitField.Flags.KickMembers)) {
+    if (member.permissions.has(PermissionsBitField.Flags.KickMembers)) {
       const cannotbanMods = new EmbedBuilder()
         .setColor("Red")
         .setDescription("***:x: I can't ban Moderators and Above.***");
@@ -109,7 +109,7 @@ module.exports = {
         const dmEmbed = new EmbedBuilder()
           .setColor("Red")
           .setDescription(
-            `🚫 You have been banned from **${guild.name}** by ${member.user.username}`
+            `🚫 You have been banned from **${guild.name}** by ${interaction.user.username}`
           )
           .addFields({
             name: "Reason",
@@ -119,14 +119,14 @@ module.exports = {
             name: "Appeal on",
             value: `https://forms.gle/buys3akBo6MtTXCg6`,
           });
-        await banMember.send({ embeds: [dmEmbed] }).catch((err) => {
+        await member.send({ embeds: [dmEmbed] }).catch((err) => {
           return;
         });
 
         const embed = new EmbedBuilder()
           .setColor("Red")
           .setDescription(
-            `:white_check_mark: Successfully Banned ***${banUser.username}*** with appeal`
+            `:white_check_mark: Successfully Banned ***${user.username}*** with appeal`
           )
           .addFields({
             name: "Reason",
@@ -134,27 +134,27 @@ module.exports = {
           });
         await interaction.reply({ embeds: [embed] });
 
-        await banMember.ban({ reason: reason }).catch((err) => {
+        await member.ban({ reason: reason }).catch((err) => {
           return;
         });
       } else if (appealable == false) {
         const dmEmbed = new EmbedBuilder()
           .setColor("Red")
           .setDescription(
-            `🚫 You have been banned from ***${guild.name}*** by ${member.user.username} and it is **not appealable**`
+            `🚫 You have been banned from ***${guild.name}*** by ${interaction.user.username} and it is **not appealable**`
           )
           .addFields({
             name: "Reason",
             value: `${reason}`,
           });
-        await banMember.send({ embeds: [dmEmbed] }).catch((err) => {
+        await member.send({ embeds: [dmEmbed] }).catch((err) => {
           return;
         });
 
         const embed2 = new EmbedBuilder()
           .setColor("Red")
           .setDescription(
-            `:white_check_mark: Successfully Banned ***${banUser.username}*** without appeal`
+            `:white_check_mark: Successfully Banned ***${user.username}*** without appeal`
           )
           .addFields({
             name: "Reason",
@@ -162,12 +162,11 @@ module.exports = {
           });
         await interaction.reply({ embeds: [embed2] });
 
-        return await banMember.ban({ reason: reason }).catch((err) => {
+        return await member.ban({ reason: reason }).catch((err) => {
           return;
         });
-      }
-      if (deletemsgs == true) {
-        await banMember.ban({ reason: reason, days: 7 }).catch((err) => {
+      } else if (deletemsgs == true) {
+        await member.ban({ reason: reason, days: 7 }).catch((err) => {
           return;
         });
 
@@ -177,18 +176,17 @@ module.exports = {
         });
 
         const userMessages = messages.filter(
-          (m) => m.author.id === banMember.user.id
+          (m) => m.author.id === member.user.id
         );
-        return await interaction.channel.bulkDelete(userMessages, true);
-      }
 
-      if (note) {
-        new modNotesSchema({
+        return await interaction.channel.bulkDelete(userMessages, true);
+      } else if (note) {
+        await new modNotesSchema({
           guildId: guild.id,
           moderatorId: interaction.user.id,
           command: "/ban",
           date: Date.now(),
-          note: `Moderated: ${banMember.user.username} | **${note}**`
+          note: `Moderated: ${member.user.username} | **${note}**`
         }).save()
       }
     } catch (err) {

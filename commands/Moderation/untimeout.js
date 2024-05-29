@@ -31,7 +31,7 @@ module.exports = {
             "***:warning: The user you mentioned is not in a timeout.***"
           )
           .setColor("Red");
-        return interaction.reply({
+        return await interaction.reply({
           embeds: [notInTimeoutEmbed],
           ephemeral: true,
         });
@@ -42,7 +42,7 @@ module.exports = {
           "***:warning: You don't have the permission `Moderate Members` to use this Command.***"
         );
       if (!permission)
-        return interaction.reply({
+        return await interaction.reply({
           embeds: [permissionEmbed],
           ephemeral: true,
         });

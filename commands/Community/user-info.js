@@ -16,7 +16,7 @@ module.exports = {
     ),
   async execute(interaction, client) {
     const { options, guild } = interaction;
-    const user = options.getUser("user") || interaction.user;
+    const user = await client.users.fetch(options.getUser("user") || interaction.user, { force: true })
     const member = await guild.members.fetch(user);
     const username = user.username;
     const avatar = user.avatarURL();
@@ -62,7 +62,7 @@ module.exports = {
           value: `<t:${Math.floor(created / 1000)}:F>`,
         })
         .setThumbnail(avatar)
-        .setColor("Random");
+        .setColor(user.accentColor);
       await interaction.reply({ embeds: [embed], components: [row] });
   },
 };

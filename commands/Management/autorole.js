@@ -63,10 +63,14 @@ module.exports = {
                     .setDescription(`***:white_check_mark: Successully made ${role.name} as the automatic join role.***`)
                 await interaction.reply({ embeds: [embed], ephemeral: true });
 
-                return await new joinRoleSchema({
-                    guildId: guild.id,
-                    roleId: role.id
-                }).save();
+                try {
+                    await new joinRoleSchema({
+                        guildId: guild.id,
+                        roleId: role.id
+                    }).save();
+                } catch(err) {
+                    return;
+                }
             }
         }
     }
