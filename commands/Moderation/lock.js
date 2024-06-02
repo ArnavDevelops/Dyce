@@ -8,7 +8,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("lock")
     .setDescription(
-      "Locks anything like a specific channel or the entire server."
+      "Locks a channel."
     )
     .setDMPermission(false)
     .addSubcommand((subcommand) =>

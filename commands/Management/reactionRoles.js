@@ -99,13 +99,17 @@ module.exports = {
         await channel.send({ embeds: [embed], components: [row], ephemeral: true });
         interaction.reply({ content: `Successfully sent the embed to <#${channel.id}>`, ephemeral: true })
 
-        return new reactionRolesSchema({
-            guildId: guild.id,
-            channelId: channel.id,
-            role1: role1.id,
-            role2: role2.id,
-            role3: role3 ? role3.id : "None",
-            role4: role4 ? role4.id : "None",
-        }).save()
+        try {
+            await new reactionRolesSchema({
+                guildId: guild.id,
+                channelId: channel.id,
+                role1: role1.id,
+                role2: role2.id,
+                role3: role3 ? role3.id : "None",
+                role4: role4 ? role4.id : "None",
+            }).save()
+        } catch(err) {
+            return;
+        }
     }
 }

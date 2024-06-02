@@ -68,7 +68,7 @@ module.exports = {
           "***:warning: You don't have the permission `Moderate Members` to use this Command.***"
         );
       if (!permission)
-        return interaction.reply({
+        return await interaction.reply({
           embeds: [permissionEmbed],
           ephemeral: true,
         });
@@ -79,7 +79,7 @@ module.exports = {
             "***:warning: The user you mentioned is already in timeout.***"
           )
           .setColor("Red");
-        return interaction.reply({ embeds: [InTimeoutEmbed], ephemeral: true });
+        return await interaction.reply({ embeds: [InTimeoutEmbed], ephemeral: true });
       }
 
       const embed3 = new EmbedBuilder()
@@ -92,7 +92,7 @@ module.exports = {
         const embed = new EmbedBuilder()
           .setColor("Red")
           .setDescription("***:x: You cannot timeout bots.***");
-        return interaction.reply({ embeds: [embed], ephemeral: true });
+        return await interaction.reply({ embeds: [embed], ephemeral: true });
       }
 
       const embed4 = new EmbedBuilder()

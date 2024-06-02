@@ -67,10 +67,14 @@ module.exports = {
                     .setFooter({ text: "Tip: use a period/full stop punctuation at the start of your message to prevent autopublish.", iconURL: "https://cdn.discordapp.com/emojis/1233294833389539390.webp?size=128&quality=lossless" })
                 await interaction.reply({ embeds: [embed], ephemeral: true });
 
-                new autoPublishSchema({
-                    guildId: guild.id,
-                    channelId: channel.id
-                }).save();
+                try {
+                    new autoPublishSchema({
+                        guildId: guild.id,
+                        channelId: channel.id
+                    }).save();
+                } catch(err) {
+                    return;
+                }
             } else {
                 const embed = new EmbedBuilder()
                     .setColor("Red")
@@ -99,7 +103,11 @@ module.exports = {
                     .setDescription(`***:white_check_mark: Successfully removed ${channel.name} for autopublishing.***`)
                 interaction.reply({ embeds: [embed], ephemeral: true });
 
-                await autoPublishSchema.findOneAndDelete({ guildId: guild.id, channelId: channel.id })
+                try {
+                    await autoPublishSchema.findOneAndDelete({ guildId: guild.id, channelId: channel.id })
+                } catch(err) {
+                    return;
+                }
             }
         }
     }

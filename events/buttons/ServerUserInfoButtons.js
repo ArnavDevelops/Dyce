@@ -24,7 +24,7 @@ module.exports = {
       }
 
       //User info's button
-      if (customId.startsWith("member_roles")) {
+      else if (customId.startsWith("member_roles")) {
         const userId = customId.split("-")[1];
         const targetMember = await interaction.guild.members.fetch(userId);
         const memberRoles = targetMember.roles.cache
@@ -42,7 +42,7 @@ module.exports = {
         interaction.reply({ embeds: [embed], ephemeral: true });
       }
 
-      if (customId.startsWith("badges")) {
+      else if (customId.startsWith("badges")) {
         const userId = customId.split("-")[1];
         const user = await client.users.cache.get(userId);
 
@@ -63,15 +63,18 @@ module.exports = {
         }))
 
         //For Nitro
-        const userData = await fetch(`https://japi.rest/discord/v1/user/${userId}`);
-        const { data } = await userData.json();
-2
-        if (data.public_flags_array) {
+        try {
+          const userData = await fetch(`https://japi.rest/discord/v1/user/${userId}`);
+          const { data } = await userData.json();
+          2
+          if (data.public_flags_array) {
 
-          await Promise.all(data.public_flags_array.map(badge => {
-            if (badge === "NITRO") badges.push("<:discordnitro:1234884669401727018> - Nitro")
-          }));
-
+            await Promise.all(data.public_flags_array.map(badge => {
+              if (badge === "NITRO") badges.push("<:discordnitro:1234884669401727018> - Nitro")
+            }));
+          }
+        } catch (err) {
+          return;
         }
 
         const embed = new EmbedBuilder()

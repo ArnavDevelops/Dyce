@@ -10,8 +10,6 @@ const ms = require("ms");
 const eventSchema = require("../../schemas/eventsSchema.js");
 const eventsRoleSchema = require("../../schemas/eventsRoleSchema.js");
 
-require("dotenv").config();
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("event")
@@ -171,18 +169,22 @@ module.exports = {
       componentType: ComponentType.Button,
     });
 
-    await eventSchema.create({
-      guildId: guild.id,
-      msgId: message.id,
-      threadId: thread.name,
-      title: name,
-      description: description,
-      joiningList: [],
-      notJoiningList: [],
-      neutralList: [],
-      startTime: timestamp,
-      endTime: endTimestamp,
-      timeItStarts: startTime,
-    });
+    try {
+      await new eventSchema({
+        guildId: guild.id,
+        msgId: message.id,
+        threadId: thread.name,
+        title: name,
+        description: description,
+        joiningList: [],
+        notJoiningList: [],
+        neutralList: [],
+        startTime: timestamp,
+        endTime: endTimestamp,
+        timeItStarts: startTime,
+      }).save()
+    } catch (err) {
+      return;
+    }
   },
 };

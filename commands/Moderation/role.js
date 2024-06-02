@@ -127,20 +127,20 @@ module.exports = {
         const givingEveryoneEmbed = new EmbedBuilder()
           .setColor("Random")
           .setDescription(
-            `***<a:Prints_dark:1112909035948212327> Giving everyone the \`${role.name}\` role...this may take some time.***`
+            `***<a:Loading:1245327249029333002> Giving everyone the \`${role.name}\` role...this may take some time.***`
           );
         await interaction.reply({ embeds: [givingEveryoneEmbed] });
         let num = 0;
         setTimeout(() => {
           members.forEach(async (m) => {
-            m.roles.add(role).catch((err) => {
+            await m.roles.add(role).catch((err) => {
               return console.log(err);
             });
             num++;
 
             const givingEmbed = new EmbedBuilder()
               .setDescription(
-                `***:white_check_mark: ${num} members have the \`${role.name}\` role now.***`
+                `***<a:Loading:1245327249029333002> ${num} members have the \`${role.name}\` role now.***`
               )
               .setColor(`Yellow`);
             await interaction.editReply({ embeds: ``, embeds: [givingEmbed] });
@@ -193,8 +193,8 @@ module.exports = {
       }
 
       try {
-        person.roles.add(addRole);
-        person.roles.remove(removeRole);
+        await person.roles.add(addRole);
+        await person.roles.remove(removeRole);
 
         const addEmbed = new EmbedBuilder()
           .setDescription(
@@ -219,7 +219,7 @@ module.exports = {
           "***:warning: You don't have the permission `Manage Roles` to use this Command.***"
         );
       if (!permission)
-        return interaction.reply({
+        return await interaction.reply({
           embeds: [permissionEmbed],
           ephemeral: true,
         });
@@ -253,13 +253,13 @@ module.exports = {
       if (!targetMember) return;
 
       try {
-        targetMember.roles.add(role);
+        await targetMember.roles.add(role);
         const embed = new EmbedBuilder()
           .setDescription(
             `***:white_check_mark: Successfully added role ${role} to ${targetMember.toString()}.***`
           )
           .setColor(`Green`);
-        interaction.reply({ embeds: [embed] });
+        return await interaction.reply({ embeds: [embed] });
       } catch (error) {
         return;
       }
@@ -277,7 +277,7 @@ module.exports = {
           "***:warning: You don't have the permission `Manage Roles` to use this Command.***"
         );
       if (!permission)
-        return interaction.reply({
+        return await interaction.reply({
           embeds: [permissionEmbed],
           ephemeral: true,
         });
@@ -319,13 +319,13 @@ module.exports = {
         return await interaction.reply({ embeds: [embed1], ephemeral: true });
       }
       try {
-        targetMember.roles.remove(role);
+        await targetMember.roles.remove(role);
         const embed = new EmbedBuilder()
           .setDescription(
             `***:white_check_mark: Successfully removed role ${role} from ${targetMember.toString()}.***`
           )
           .setColor("Green");
-        interaction.reply({ embeds: [embed] });
+        await interaction.reply({ embeds: [embed] });
       } catch (error) {    
         return;
       }

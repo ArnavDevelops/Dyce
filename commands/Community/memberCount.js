@@ -65,6 +65,7 @@ module.exports = {
 
       const embed = new EmbedBuilder()
         .setTitle(`Member count of ${guild.name}`)
+        .setThumbnail(guild.iconURL())
         .setColor("Random")
         .setDescription(
           `**Total:** ${totalMembers}\n**Members:** ${humanMembers}\n**Bots:** ${botMembers}\n**Growth in last 24h:** ${last24Hours}\n**Growth in last 7 days:** ${last7Days}`
@@ -72,7 +73,7 @@ module.exports = {
         .setImage(chartUrl);
       await interaction.followUp({ embeds: [embed] });
     } catch (err) {
-      console.error(err)
+      return;
     }
   },
 };

@@ -8,13 +8,13 @@ const modNotesSchema = require("../../schemas/modNotesSchema.js");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("kick")
-    .setDescription("Kick a specific user.")
+    .setDescription("Kick a user.")
     .setDMPermission(false)
     .addUserOption((user) =>
       user
         .setName("user")
         .setDescription(
-          "Select the user you want to ban, you can also use User ID."
+          "Select the user you want to ban, you can also use user ID."
         )
         .setRequired(true)
     )
@@ -48,7 +48,7 @@ module.exports = {
     const reason = options.getString("reason");
 
     const permission = member.permissions.has(
-      PermissionsBitField.Flags.KickMembers
+      PermissionsBitField.Flags.KickMembers || PermissionsBitField.Flags.Administrator
     );
 
     const permissionEmbed = new EmbedBuilder()
@@ -110,7 +110,7 @@ module.exports = {
       await kickMember.kick({ reason: reason });
 
       if (note) {
-        new modNotesSchema({
+        await new modNotesSchema({
           guildId: guild.id,
           moderatorId: interaction.user.id,
           command: "/kick",

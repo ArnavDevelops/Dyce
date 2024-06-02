@@ -5,7 +5,6 @@ const {
   ActionRowBuilder,
 } = require("discord.js");
 const eventsSchema = require("../../schemas/eventsSchema.js");
-const { logMessage } = require("../../helpers/logging.js");
 const eventsRoleSchema = require("../../schemas/eventsRoleSchema.js")
 
 module.exports = {
@@ -16,9 +15,6 @@ module.exports = {
     if (!message) return;
     if (!guild) return;
     if (!interaction.isButton()) return;
-
-    const eventsRoleData = await eventsRoleSchema.findOne({ guildId: guild.id });
-    const role = guild.roles.cache.get(eventsRoleData.roleId);
 
     const joinButton = new ButtonBuilder()
       .setCustomId("join")
@@ -170,6 +166,19 @@ module.exports = {
           });
         }
       } else if (customId == "cancel") {
+
+        const eventsRoleData = await eventsRoleSchema.findOne({ guildId: guild.id });
+        if (!eventsRoleData) {
+          const joinedEmbed = new EmbedBuilder()
+            .setColor("Red")
+            .setDescription("***:warning: Having issues finding this Event's data. Make sure there is a host role for this server.***");
+          await interaction.reply({
+            embeds: [joinedEmbed],
+            ephemeral: true,
+          });
+        }
+        const role = guild.roles.cache.get(eventsRoleData.roleId);
+        
         if (!interaction.member.roles.cache.has(role.id)) {
           const errorEmbed = new EmbedBuilder()
             .setColor("Red")
@@ -228,7 +237,7 @@ module.exports = {
         return await eventsSchema.findOneAndDelete({ msgId: message.id });
       }, data.timeItStarts);
     } catch (err) {
-      logMessage(err.stack, "ERROR");
+      return;
     }
   },
 };

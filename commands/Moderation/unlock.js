@@ -46,19 +46,23 @@ module.exports = {
         const notlocked = new EmbedBuilder()
           .setDescription(`***:warning: ${channel} is not Locked.***`)
           .setColor("Red");
-        return interaction.reply({ embeds: [notlocked], ephemeral: true });
+        return await interaction.reply({ embeds: [notlocked], ephemeral: true });
       }
 
       await channel.permissionOverwrites.edit(guild.id, {
         SendMessages: null,
       });
 
-      await channel.permissionOverwrites.edit(role, { SendMessages: null });
+      try {
+        await channel.permissionOverwrites.edit(role, { SendMessages: null });
+      } catch(err) {
+        return;
+      }
 
       const embed = new EmbedBuilder()
         .setDescription(`***:white_check_mark: ${channel} is now Unlocked.***`)
         .setColor("Red");
-      interaction.reply({ embeds: [embed] });
+      await interaction.reply({ embeds: [embed] });
     }
   },
 };

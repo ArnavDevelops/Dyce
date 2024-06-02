@@ -60,11 +60,15 @@ module.exports = {
         });
       }
 
-      await messageLogSchema.findOneAndUpdate(
-        { Guild: guild.id },
-        { Guild: guild.id, Channel: channel.id },
-        { upsert: true }
-      );
+      try {
+        await messageLogSchema.findOneAndUpdate(
+          { Guild: guild.id },
+          { Guild: guild.id, Channel: channel.id },
+          { upsert: true }
+        );
+      } catch (err) {
+        return;
+      }
 
       const embed3 = new EmbedBuilder()
         .setColor("Green")
@@ -75,7 +79,11 @@ module.exports = {
 
     //Disable
     else if (subcommand === "disable") {
-      await messageLogSchema.findOneAndDelete({ Guild: guild.id });
+      try {
+        await messageLogSchema.findOneAndDelete({ Guild: guild.id });
+      } catch (err) {
+        return;
+      }
 
       const embed4 = new EmbedBuilder()
         .setColor("Red")
