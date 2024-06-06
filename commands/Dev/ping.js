@@ -1,3 +1,4 @@
+//Imports
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 
 module.exports = {
@@ -6,6 +7,7 @@ module.exports = {
     .setDescription("Get the bot's ping")
     .setDMPermission(false),
   async execute(interaction, client) {
+    //Misc
     let circles = {
       good: "<:WiFi_Online:1231374139621900362>",
       okay: "<:WiFi_PerformanceIssues:1231374366164647986>",
@@ -15,40 +17,31 @@ module.exports = {
     await interaction.deferReply();
 
     const pinging = await interaction.editReply({ content: "Pinging..." });
-
     const ws = interaction.client.ws.ping;
-    const msgEdit = Date.now() - pinging.createdTimestamp;
+    const msgEdit = Date.now() - interaction.createdTimestamp;
 
-    // uptime
-    let days = Math.floor(interaction.client.uptime / 86400000);
-    let hours = Math.floor(interaction.client.uptime / 3600000) % 24;
-    let minutes = Math.floor(interaction.client.uptime / 60000) % 60;
-    let seconds = Math.floor(interaction.client.uptime / 1000) % 60;
-
+    //Emoji
     const wsEmoji =
       ws <= 100 ? circles.good : ws <= 200 ? circles.okay : circles.bad;
     const msgEmoji = msgEdit <= 200 ? circles.good : circles.bad;
 
+    //Embed
     const pingEmbed = new EmbedBuilder()
-      .setThumbnail(interaction.client.user.displayAvatarURL({ size: 64 }))
-      .setColor("Random")
+      .setThumbnail(interaction.client.user.displayAvatarURL({ size: 256 }))
+      .setColor("White")
       .setTimestamp()
       .setFooter({ text: "Pinged At" })
       .addFields(
         {
-          name: "Websocket Latency",
+          name: "API Latency",
           value: `${wsEmoji} \`${ws}ms\``,
         },
         {
-          name: "API Latency",
+          name: "Client Latency",
           value: `${msgEmoji} \`${msgEdit}ms\``,
         },
-        {
-          name: `${interaction.client.user.username} Uptime`,
-          value: `⏳ \`${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds\``,
-        }
       );
 
-    await pinging.edit({ embeds: [pingEmbed], content: "\u200b" });
+    return await pinging.edit({ embeds: [pingEmbed], content: "\u200b" });
   },
 };
