@@ -1,29 +1,30 @@
+//Imports
 const {
   SlashCommandBuilder,
   EmbedBuilder,
   PermissionsBitField,
+  PermissionFlagsBits
 } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("untimeout")
-    .setDescription("Removes the timeout of a specific user.")
+    .setDescription("Removes the timeout from a already muted user.")
     .setDMPermission(false)
     .addUserOption((user) =>
       user.setName("user").setDescription("Select the user.").setRequired(true)
     )
     .addStringOption((reason) =>
       reason.setName("reason").setDescription("Please provide a reason for it.").setRequired(true)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
   async execute(interaction, client) {
     try {
       const { options, guild, member } = interaction;
+
+      //Variables
       const untimeMember = options.getMember("user");
       const reason = options.getString("reason")
-
-      const permission = member.permissions.has(
-        PermissionsBitField.Flags.ModerateMembers
-      );
 
       if (untimeMember.communicationDisabledUntilTimestamp == null) {
         const notInTimeoutEmbed = new EmbedBuilder()
@@ -36,16 +37,6 @@ module.exports = {
           ephemeral: true,
         });
       }
-      const permissionEmbed = new EmbedBuilder()
-        .setColor("Red")
-        .setDescription(
-          "***:warning: You don't have the permission `Moderate Members` to use this Command.***"
-        );
-      if (!permission)
-        return await interaction.reply({
-          embeds: [permissionEmbed],
-          ephemeral: true,
-        });
 
       const embed4 = new EmbedBuilder()
         .setDescription(
@@ -75,7 +66,7 @@ module.exports = {
           `***⌛ ${untimeMember.user.username}'s timeout has been removed***`
         )
         .addFields({ name: "Reason", value: reason });
-      await interaction.reply({ embeds: [embed1] }).catch((err) => {
+      return await interaction.reply({ embeds: [embed1] }).catch((err) => {
         return;
       });
       

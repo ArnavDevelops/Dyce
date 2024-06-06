@@ -1,10 +1,11 @@
+//Imports
 const {
     SlashCommandBuilder,
     EmbedBuilder,
-    PermissionsBitField,
     ButtonBuilder,
     ButtonStyle,
-    ActionRowBuilder
+    ActionRowBuilder,
+    PermissionFlagsBits
 } = require("discord.js");
 const reactionRolesSchema = require("../../schemas/reactionRolesSchema.js")
 
@@ -40,31 +41,20 @@ module.exports = {
             r
                 .setName("role4")
                 .setDescription("Fourth role.")
-        ),
+        )
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction, client) {
         const { member, options, guild } = interaction;
 
-        if (!member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            const permissionEmbed = new EmbedBuilder()
-                .setColor("Red")
-                .setDescription(
-                    "***:warning: You don't have the permission `Administrator` to use this Command.***"
-                );
-
-            return interaction.reply({
-                embeds: [permissionEmbed],
-                ephemeral: true,
-            });
-        }
-
+        //Variables
         const role1 = guild.roles.cache.get(options.getRole("role1").id)
         const role2 = guild.roles.cache.get(options.getRole("role2").id)
         const role3 = options.getRole("role3") ? guild.roles.cache.get(options.getRole("role3").id) : null;
         const role4 = options.getRole("role4") ? guild.roles.cache.get(options.getRole("role4").id) : null;
-
         const channel = guild.channels.cache.get(options.getChannel("channel").id)
         let row = new ActionRowBuilder()
 
+        //Buttons
         const role1btn = new ButtonBuilder()
             .setCustomId("role1")
             .setLabel(role1.name)
@@ -73,7 +63,6 @@ module.exports = {
             .setCustomId("role2")
             .setLabel(role2.name)
             .setStyle(ButtonStyle.Primary);
-
         if (role3) {
             const role3btn = new ButtonBuilder()
                 .setCustomId("role3")
@@ -82,7 +71,6 @@ module.exports = {
 
             row.addComponents(role3btn);
         }
-
         if (role4) {
             const role4btn = new ButtonBuilder()
                 .setCustomId("role4")
@@ -91,24 +79,31 @@ module.exports = {
 
             row.addComponents(role4btn);
         }
-        row.addComponents(role1btn, role2btn);
+        const deleteBtn = new ButtonBuilder()
+            .setCustomId("rrdelete")
+            .setLabel("Delete")
+            .setStyle(ButtonStyle.Danger);
+        row.addComponents(role1btn, role2btn, deleteBtn);
 
+        //Embed
         const embed = new EmbedBuilder()
             .setTitle("Reaction Roles")
             .setDescription("***<:info:1233294833389539390> Click one or more of the buttons to get the role of your choice!***");
-        await channel.send({ embeds: [embed], components: [row], ephemeral: true });
-        interaction.reply({ content: `Successfully sent the embed to <#${channel.id}>`, ephemeral: true })
+        const msg = await channel.send({ embeds: [embed], components: [row], ephemeral: true });
+        await interaction.reply({ content: `Successfully sent the embed to <#${channel.id}>`, ephemeral: true })
 
+        //Make Data
         try {
             await new reactionRolesSchema({
                 guildId: guild.id,
                 channelId: channel.id,
+                msgId: msg.id,
                 role1: role1.id,
                 role2: role2.id,
                 role3: role3 ? role3.id : "None",
                 role4: role4 ? role4.id : "None",
             }).save()
-        } catch(err) {
+        } catch (err) {
             return;
         }
     }

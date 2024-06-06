@@ -1,6 +1,7 @@
+//Imports
 const {
   SlashCommandBuilder,
-  PermissionsBitField,
+  PermissionFlagsBits,
   EmbedBuilder,
 } = require("discord.js");
 
@@ -82,27 +83,15 @@ module.exports = {
             .setDescription("Which role you wanna remove from the user.")
             .setRequired(true)
         )
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
   async execute(interaction, client) {
-    const { options, guild, member } = interaction;
+    const { options, guild } = interaction;
+
+
 
     //All
     if (options.getSubcommand() === "all") {
-      const permission = member.permissions.has(
-        PermissionsBitField.Flags.Administrator
-      );
-
-      const permissionEmbed = new EmbedBuilder()
-        .setColor("Red")
-        .setDescription(
-          "***:warning: You don't have the permission `Administrator` to use this Command.***"
-        );
-      if (!permission)
-        return interaction.reply({
-          embeds: [permissionEmbed],
-          ephemeral: true,
-        });
-
       const role = options.getRole("role");
 
       if (role.name === "@everyone") {
@@ -119,53 +108,35 @@ module.exports = {
 
       await guild.members.fetch();
       const members = guild.members.cache.filter((m) => !m.user.bot);
-      const hasPermissionToUseThisCmd = member.permissions.has(
-        PermissionsBitField.Flags.Administrator
-      );
 
-      if (hasPermissionToUseThisCmd) {
-        const givingEveryoneEmbed = new EmbedBuilder()
-          .setColor("Random")
-          .setDescription(
-            `***<a:Loading:1245327249029333002> Giving everyone the \`${role.name}\` role...this may take some time.***`
-          );
-        await interaction.reply({ embeds: [givingEveryoneEmbed] });
-        let num = 0;
-        setTimeout(() => {
-          members.forEach(async (m) => {
-            await m.roles.add(role).catch((err) => {
-              return console.log(err);
-            });
-            num++;
-
-            const givingEmbed = new EmbedBuilder()
-              .setDescription(
-                `***<a:Loading:1245327249029333002> ${num} members have the \`${role.name}\` role now.***`
-              )
-              .setColor(`Yellow`);
-            await interaction.editReply({ embeds: ``, embeds: [givingEmbed] });
+      const givingEveryoneEmbed = new EmbedBuilder()
+        .setColor("Random")
+        .setDescription(
+          `***<a:Loading:1245327249029333002> Giving everyone the \`${role.name}\` role...this may take some time.***`
+        );
+      await interaction.reply({ embeds: [givingEveryoneEmbed] });
+      let num = 0;
+      setTimeout(() => {
+        members.forEach(async (m) => {
+          await m.roles.add(role).catch((err) => {
+            return;
           });
-        }, 100);
-      }
+          num++;
+
+          const givingEmbed = new EmbedBuilder()
+            .setDescription(
+              `***<a:Loading:1245327249029333002> ${num} members have the \`${role.name}\` role now.***`
+            )
+            .setColor(`Yellow`);
+          await interaction.editReply({ embeds: ``, embeds: [givingEmbed] });
+        });
+      }, 100);
     }
+
+
 
     //Change
     else if (options.getSubcommand() === "change") {
-      const permission = member.permissions.has(
-        PermissionsBitField.Flags.ManageRoles
-      );
-
-      const permissionEmbed = new EmbedBuilder()
-        .setColor("Red")
-        .setDescription(
-          "***:warning: You don't have the permission `Manage Roles` to use this Command.***"
-        );
-      if (!permission)
-        return interaction.reply({
-          embeds: [permissionEmbed],
-          ephemeral: true,
-        });
-
       const user = options.getUser("user");
       const person = await guild.members.fetch(user).catch(async (err) => {
         const failEmbed = new EmbedBuilder()
@@ -193,6 +164,7 @@ module.exports = {
       }
 
       try {
+        //Role Change
         await person.roles.add(addRole);
         await person.roles.remove(removeRole);
 
@@ -207,23 +179,10 @@ module.exports = {
       }
     }
 
-    //Give
+
+
+    //Give Subcommand
     else if (options.getSubcommand() === "give") {
-      const permission = member.permissions.has(
-        PermissionsBitField.Flags.ManageRoles
-      );
-
-      const permissionEmbed = new EmbedBuilder()
-        .setColor("Red")
-        .setDescription(
-          "***:warning: You don't have the permission `Manage Roles` to use this Command.***"
-        );
-      if (!permission)
-        return await interaction.reply({
-          embeds: [permissionEmbed],
-          ephemeral: true,
-        });
-
       const role = options.getRole("add");
 
       if (role.name === "@everyone") {
@@ -253,6 +212,7 @@ module.exports = {
       if (!targetMember) return;
 
       try {
+        //Adds role
         await targetMember.roles.add(role);
         const embed = new EmbedBuilder()
           .setDescription(
@@ -265,23 +225,10 @@ module.exports = {
       }
     }
 
-    //Remove
+
+
+    //Remove Subcommand
     else if (options.getSubcommand() === "remove") {
-      const permission = member.permissions.has(
-        PermissionsBitField.Flags.ManageRoles
-      );
-
-      const permissionEmbed = new EmbedBuilder()
-        .setColor("Red")
-        .setDescription(
-          "***:warning: You don't have the permission `Manage Roles` to use this Command.***"
-        );
-      if (!permission)
-        return await interaction.reply({
-          embeds: [permissionEmbed],
-          ephemeral: true,
-        });
-
       const role = options.getRole("remove");
 
       if (role.name === "@everyone") {
@@ -319,14 +266,15 @@ module.exports = {
         return await interaction.reply({ embeds: [embed1], ephemeral: true });
       }
       try {
+        //Removes Role
         await targetMember.roles.remove(role);
         const embed = new EmbedBuilder()
           .setDescription(
             `***:white_check_mark: Successfully removed role ${role} from ${targetMember.toString()}.***`
           )
           .setColor("Green");
-        await interaction.reply({ embeds: [embed] });
-      } catch (error) {    
+        return await interaction.reply({ embeds: [embed] });
+      } catch (error) {
         return;
       }
     }

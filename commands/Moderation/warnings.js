@@ -1,3 +1,4 @@
+//Imports
 const {
   SlashCommandBuilder,
   EmbedBuilder,
@@ -18,21 +19,22 @@ module.exports = {
     ),
   async execute(interaction, client) {
     const { options, guild } = interaction;
+    //Variables
     const warn = options.getMember("user") || interaction.user;
     const userInGuild = guild.members.cache.get(warn.id);
-
     let warnsBoard = [""];
     const page = 1;
     const warnsPerPage = 5;
     const warnsToSkip = (page - 1) * warnsPerPage;
 
-    const userWarnings = await ModSchema.find({ guildId: guild.id, userId: warn.user.id || warn.id }).limit(warnsPerPage).skip(warnsToSkip).exec();
+    //Data
+    const data = await ModSchema.find({ guildId: guild.id, userId: warn.user.id || warn.id }).limit(warnsPerPage).skip(warnsToSkip).exec();
 
     if (userInGuild.user.bot) {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setDescription("***:x: Bots cannot have any warnings.***");
-      return interaction.reply({ embeds: [embed], ephemeral: true });
+      return await interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
     if (userInGuild.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
@@ -50,31 +52,30 @@ module.exports = {
         } has no warnings.***`
       )
       .setColor("Red");
-    if (userWarnings.length < 1)
+    if (data.length < 1)
       return interaction.reply({ embeds: [noWarnings] })
 
 
     let warns = warnsToSkip + 1;
 
+    //Buttons
     const previousButton = new ButtonBuilder()
       .setCustomId(`warnsBoard:previous:${warn.user.id || warn.id}:${page}`)
       .setLabel("⬅️")
       .setStyle(ButtonStyle.Primary)
       .setDisabled(page === 1);
-
     const nextButton = new ButtonBuilder()
       .setCustomId(`warnsBoard:next:${warn.user.id || warn.id}:${page}`)
       .setLabel("➡️")
       .setStyle(ButtonStyle.Primary)
-      .setDisabled(userWarnings.length < warnsPerPage);
-      
+      .setDisabled(data.length < warnsPerPage);
     const row = new ActionRowBuilder().addComponents(
       previousButton,
       nextButton
     );
 
     if (interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
-      for (const warn of userWarnings) {
+      for (const warn of data) {
         warnsBoard += [
           `**warn ID:** ${warn._id}`,
           `**Date:** <t:${Math.round(warn.timestamp / 1000)}>`,
@@ -87,9 +88,9 @@ module.exports = {
         .setTitle(`***${warn.username || warn.user.username}'s warnings***`)
         .setDescription(warnsBoard)
         .setColor("Yellow");
-      interaction.reply({ embeds: [embed], components: [row] });
+      await interaction.reply({ embeds: [embed], components: [row] });
     } else {
-      for (const warn of userWarnings) {
+      for (const warn of data) {
         warnsBoard += [
           `**Date:** <t:${Math.round(warn.timestamp / 1000)}>`,
           `**Reason:** ${warn.reason}`,
@@ -102,7 +103,7 @@ module.exports = {
         .setDescription(warnsBoard)
         .setColor("Yellow")
         .setFooter({ text: "WarnID is hidden as the Command user is not a warn", iconURL: `${warn.avatarURL() || warn.user.avatarURL()}` })
-      interaction.reply({ embeds: [embed], components: [row] });
+      return await interaction.reply({ embeds: [embed], components: [row] });
     }
   },
 };

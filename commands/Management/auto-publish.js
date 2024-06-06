@@ -1,8 +1,9 @@
+//Imports
 const {
     SlashCommandBuilder,
     EmbedBuilder,
-    PermissionsBitField,
-    ChannelType
+    ChannelType,
+    PermissionFlagsBits
 } = require("discord.js");
 const autoPublishSchema = require("../../schemas/autoPublishSchema.js");
 
@@ -11,7 +12,7 @@ module.exports = {
         .setName("autopublish")
         .setDescription("Auto publishes announcements to other servers.")
         .setDMPermission(false)
-        .addSubcommand((c) =>
+        .addSubcommand((c) => //Subcommand to autopublish channel
             c
                 .setName("add")
                 .setDescription("What should be the channel for autopublishing??")
@@ -22,7 +23,7 @@ module.exports = {
                         .setRequired(true)
                 )
         )
-        .addSubcommand((c) =>
+        .addSubcommand((c) => //Subcommand to remove an already autopublishing channel
             c
                 .setName("remove")
                 .setDescription("Which channel should not have autopublishing?")
@@ -32,23 +33,12 @@ module.exports = {
                         .setDescription("Select the channel")
                         .setRequired(true)
                 )
-        ),
+        )
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction, client) {
-        const { options, guild, member } = interaction;
+        const { options, guild } = interaction;
 
-        if (!member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            const permissionEmbed = new EmbedBuilder()
-                .setColor("Red")
-                .setDescription(
-                    "***:warning: You don't have the permission `Administrator` to use this Command.***"
-                );
-
-            return interaction.reply({
-                embeds: [permissionEmbed],
-                ephemeral: true,
-            });
-        }
-
+        //Add subcommand
         if (options.getSubcommand() === "add") {
             const channel = guild.channels.cache.get(options.getChannel("channel").id);
             if (channel.type !== ChannelType.GuildAnnouncement) {
@@ -58,8 +48,10 @@ module.exports = {
                 return await interaction.reply({ embeds: [embed], ephemeral: true })
             }
 
+            //Data
             const data = await autoPublishSchema.findOne({ guildId: guild.id, channelId: channel.id });
 
+            //If there is no data
             if (!data) {
                 const embed = new EmbedBuilder()
                     .setColor("Red")
@@ -75,12 +67,14 @@ module.exports = {
                 } catch(err) {
                     return;
                 }
+            //Else if there is data
             } else {
                 const embed = new EmbedBuilder()
                     .setColor("Red")
                     .setDescription("***:warning: This channel is already setup for autopublishing.***")
-                interaction.reply({ embeds: [embed], ephemeral: true });
+                return await interaction.reply({ embeds: [embed], ephemeral: true });
             }
+        //Remove subcommand
         } else if (options.getSubcommand() == "remove") {
             const channel = guild.channels.cache.get(options.getChannel("channel").id);
             if (channel.type !== ChannelType.GuildAnnouncement) {
@@ -90,13 +84,15 @@ module.exports = {
                 return await interaction.reply({ embeds: [embed], ephemeral: true })
             }
 
+            //Data
             const data = await autoPublishSchema.findOne({ guildId: guild.id, channelId: channel.id });
-
+            //If there is no data
             if (!data) {
                 const embed = new EmbedBuilder()
                     .setColor("Red")
                     .setDescription("***The channel you selected has not been setup for autopublishing.***")
                 return await interaction.reply({ embeds: [embed], ephemeral: true });
+            //Else if there is a data
             } else {
                 const embed = new EmbedBuilder()
                     .setColor("Green")

@@ -1,3 +1,4 @@
+//Imports
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const QuickChart = require("quickchart-js");
 
@@ -7,6 +8,8 @@ module.exports = {
     .setDescription("Shows the amount of members in the server.")
     .setDMPermission(false),
   async execute(interaction, client) {
+
+    //Variables
     const { guild } = interaction;
     const totalMembers = guild.memberCount;
     const botMembers = guild.members.cache.filter(
@@ -20,8 +23,10 @@ module.exports = {
       (member) => Date.now() - member.joinedTimestamp < 7 * 24 * 60 * 60 * 1000
     ).size;
 
+    //Deferring Reply
     interaction.deferReply()
 
+    //Make the chart
     try {
       const chart = new QuickChart();
       chart
@@ -63,6 +68,7 @@ module.exports = {
         .setBackgroundColor("#151515");
       const chartUrl = await chart.getShortUrl();
 
+      //Embed
       const embed = new EmbedBuilder()
         .setTitle(`Member count of ${guild.name}`)
         .setThumbnail(guild.iconURL())
@@ -71,7 +77,7 @@ module.exports = {
           `**Total:** ${totalMembers}\n**Members:** ${humanMembers}\n**Bots:** ${botMembers}\n**Growth in last 24h:** ${last24Hours}\n**Growth in last 7 days:** ${last7Days}`
         )
         .setImage(chartUrl);
-      await interaction.followUp({ embeds: [embed] });
+      return await interaction.followUp({ embeds: [embed] });
     } catch (err) {
       return;
     }

@@ -1,10 +1,11 @@
+//Imports
 const {
     SlashCommandBuilder,
     EmbedBuilder,
-    PermissionsBitField,
     ButtonBuilder,
     ButtonStyle,
-    ActionRowBuilder
+    ActionRowBuilder,
+    PermissionFlagsBits
 } = require("discord.js");
 const joinRoleSchema = require("../../schemas/joinRoleSchema.js")
 
@@ -23,28 +24,19 @@ module.exports = {
                         .setDescription("Select the role.")
                         .setRequired(true)
                 )
-        ),
+        )
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction, client) {
         const { options, guild, member } = interaction;
 
+        //Join Subcommand
         if (options.getSubcommand() === "join") {
             const getRole = options.getRole("role")
             const role = guild.roles.cache.get(getRole.id);
 
+            //Data
             const data = await joinRoleSchema.findOne({ guildId: guild.id });
-
-            if (!member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-                const permissionEmbed = new EmbedBuilder()
-                    .setColor("Red")
-                    .setDescription(
-                        "***:warning: You don't have the permission `Administrator` to use this Command.***"
-                    );
-
-                return interaction.reply({
-                    embeds: [permissionEmbed],
-                    ephemeral: true,
-                });
-            }
+            //If there is no data
             if (data) {
                 const button = new ButtonBuilder()
                     .setCustomId("joinrolebtn")
@@ -56,7 +48,8 @@ module.exports = {
                     .setTitle("A role is already chosen!")
                     .setDescription("A role is already chosen as the autorole for join!")
                     .setColor("Red")
-                interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+                return await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+            //Else if there is data
             } else {
                 const embed = new EmbedBuilder()
                     .setColor("Green")

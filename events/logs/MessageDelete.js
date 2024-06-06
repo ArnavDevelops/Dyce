@@ -60,7 +60,7 @@ module.exports = {
 
       await logChannel.send({ embeds: [embed] });
     } catch (err) {
-      console.log(err)
+      return;
     }
   },
 };

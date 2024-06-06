@@ -1,4 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, PermissionsBitField } = require("discord.js");
+//Imports
+const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, PermissionFlagsBits } = require("discord.js");
 const eventRoleSchema = require("../../schemas/eventsRoleSchema");
 
 module.exports = {
@@ -10,22 +11,19 @@ module.exports = {
                 .setName("role")
                 .setDescription("Choose the role.")
                 .setRequired(true)
-        ),
+        )
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+        .setDMPermission(false),
     async execute(interaction, client) {
         const { options, guild, member } = interaction;
         const getRole = options.getRole("role")
         const role = guild.roles.cache.get(getRole.id);
 
         try {
+            //Getting the Data
             const data = await eventRoleSchema.findOne({ guildId: guild.id });
 
-            if (!member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-                const embed = new EmbedBuilder()
-                    .setColor("Red")
-                    .setDescription("***:warning: You don't have the permission `Administrator` to run this command***")
-                interaction.reply({ embeds: [embed], ephemeral: true })
-            }
-
+            //If there is no data or a roleId
             if (!data || !data.roleId) {
                 const embed = new EmbedBuilder()
                     .setTitle("Role chosen")
@@ -33,17 +31,20 @@ module.exports = {
                     .setColor("Green")
                 interaction.reply({ embeds: [embed], ephemeral: true });
 
-                await new eventRoleSchema({
+                return await new eventRoleSchema({
                     guildId: guild.id,
                     roleId: role.id
                 }).save();
-            } else {
+            //Else if there is a data
+            } else { 
+                //Button
                 const button = new ButtonBuilder()
                     .setCustomId("hostrolebtn")
                     .setLabel("Remove role?")
                     .setStyle(ButtonStyle.Primary);
                 const row = new ActionRowBuilder().addComponents(button)
 
+                //Embed
                 const embed = new EmbedBuilder()
                     .setTitle("A is already chosen!")
                     .setDescription("A role is already chosen as the role required to host in this server!")

@@ -1,3 +1,4 @@
+//Imports
 const {
     SlashCommandBuilder,
     EmbedBuilder,
@@ -5,6 +6,7 @@ const {
     ButtonBuilder,
     ButtonStyle,
     ActionRowBuilder,
+    PermissionFlagsBits,
 } = require("discord.js");
 const ms = require("ms")
 const softbanSchema = require("../../schemas/softbanSchema.js");
@@ -56,20 +58,24 @@ module.exports = {
           .setName("note")
           .setDescription("Any notes for this action?.")
           .setRequired(false)
-        ),
+        )
+        .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
     async execute(interaction, client) {
         const { options, guild, member } = interaction;
 
         try {
+            //Variables
             const banUser = options.getUser("user") || options.getUser("user").id;
             const banMember = await guild.members.fetch(banUser)
             const reason = options.getString("reason")
             const duration = options.getString("duration");
             const note = options.getString("note");
+
+            //Role Data
             const softbanRoleData = await softbanRoleSchema.findOne({
                 guildId: guild.id,
             });
-
+            //If there is no data
             if (!softbanRoleData) {
                 const button = new ButtonBuilder()
                     .setCustomId("softban")
@@ -96,26 +102,11 @@ module.exports = {
                 await interaction.reply({ embeds: [embed], ephemeral: true });
             }
 
+            //Data
             const data = await softbanSchema.findOne({
                 guildId: guild.id,
                 userId: banUser.id,
             });
-
-            const permission = member.permissions.has(
-                PermissionsBitField.Flags.BanMembers
-            );
-
-            const permissionEmbed = new EmbedBuilder()
-                .setColor("Red")
-                .setDescription(
-                    "***:warning: You don't have the permission `Ban Members` to use this Command.***"
-                );
-            if (!permission) {
-                return interaction.reply({
-                    embeds: [permissionEmbed],
-                    ephemeral: true,
-                });
-            }
 
             if (banMember.id == member.id) {
                 const cannotbanyourself = new EmbedBuilder()
@@ -182,8 +173,9 @@ module.exports = {
 
                 await banMember.roles.add(role);
 
+                //if there is no data
                 if (!data) {
-                    await new softbanSchema({
+                    return await new softbanSchema({
                         guildId: guild.id,
                         userId: banUser.id,
                         duration: duration,
@@ -193,11 +185,11 @@ module.exports = {
 
             setTimeout(async() => {
                 banMember.roles.remove(role)
-                await softbanSchema.deleteOne({ userId: banUser.id, guildId: guild.id })
+                return await softbanSchema.deleteOne({ userId: banUser.id, guildId: guild.id })
             }, ms(duration || data.duration))
 
             if (note) {
-                new modNotesSchema({
+                return await new modNotesSchema({
                   guildId: guild.id,
                   moderatorId: interaction.user.id,
                   command: "/softban",

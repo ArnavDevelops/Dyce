@@ -1,7 +1,8 @@
+//Imports
 const {
     SlashCommandBuilder,
     EmbedBuilder,
-    PermissionsBitField,
+    PermissionFlagsBits,
 } = require("discord.js");
 
 module.exports = {
@@ -59,31 +60,18 @@ module.exports = {
                     { name: "Dark Blue", value: "DarkBlue" },
                 )
                 .setRequired(false)
-        ),
+        )
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction, client) {
         const { options, guild, member } = interaction;
 
+        //Variables
         const title = options.getString("title")
         const description = options.getString("description")
         const colour = options.getString("colour")
         const image = options.getAttachment("image")
         const thumbnail = options.getAttachment("icon")
         const channel = guild.channels.cache.get(options.getChannel("channel").id)
-
-        const permission = member.permissions.has(
-            PermissionsBitField.Flags.Administrator
-        );
-
-        const permissionEmbed = new EmbedBuilder()
-            .setColor("Red")
-            .setDescription(
-                "***:warning: You don't have the permission `Administrator` to use this Command.***"
-            );
-        if (!permission)
-            return interaction.reply({
-                embeds: [permissionEmbed],
-                ephemeral: true,
-            });
 
         const embed = new EmbedBuilder()
             .setTitle(title)
@@ -105,7 +93,7 @@ module.exports = {
             .setColor("Green")
             .setDescription(`:white_check_mark: **Successfully sent the embed to ${channel}**`)
 
-        channel.send({ embeds: [embed] })
-        interaction.reply({ embeds: [reply], ephemeral: true })
+        await channel.send({ embeds: [embed] })
+        return await interaction.reply({ embeds: [reply], ephemeral: true })
     }
 }

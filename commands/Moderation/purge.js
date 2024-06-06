@@ -1,7 +1,8 @@
+//Imports
 const {
   SlashCommandBuilder,
-  PermissionsBitField,
   EmbedBuilder,
+  PermissionFlagsBits,
 } = require("discord.js");
 
 module.exports = {
@@ -34,23 +35,12 @@ module.exports = {
             .setMaxValue(50)
             .setRequired(true)
         )
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
   async execute(interaction, client) {
-    const { member, options, channel } = interaction;
+    const { options, channel } = interaction;
 
-    const permission = member.permissions.has(
-      PermissionsBitField.Flags.ManageMessages || PermissionsBitField.Flags.Administrator
-    );
-
-    const permissionEmbed = new EmbedBuilder()
-      .setColor("Red")
-      .setDescription(
-        "***:warning: You don't have the permission `Manage Messages` to use this Command.***"
-      );
-    if (!permission)
-      return interaction.reply({ embeds: [permissionEmbed], ephemeral: true });
-
-    //Any
+    //Any subcommand
     if (options.getSubcommand() === "any") {
       await interaction.deferReply({ ephemeral: true });
 
@@ -76,7 +66,7 @@ module.exports = {
       }
     }
 
-    //After
+    //After subcommand
     else if (options.getSubcommand() === "after") {
       const messagelink = options.getString("message");
       const limit = options.getInteger("limit");
@@ -87,6 +77,7 @@ module.exports = {
         .setColor("Red")
         .setDescription("***:x: No message Found***");
 
+      //Regex code to make sure messagelink matches either link or ID
       let messageId = (messagelink.match(/\d{10,}/g) || []).pop();
       if (!messageId)
         return interaction.reply({ embeds: [badEmbed], ephemeral: true });
@@ -100,11 +91,7 @@ module.exports = {
         return interaction.reply({ embeds: [badEmbed2], ephemeral: true });
 
       await interaction.deferReply({ ephemeral: true });
-      const DaysEmbed = new EmbedBuilder()
-        .setColor("Red")
-        .setDescription(
-          "***:warning: You cannot delete messages older than 14 days or 2 weeks!***"
-        );
+
       try {
         let messages = await channel.messages.fetch({
           limit: limit,
@@ -117,7 +104,14 @@ module.exports = {
         for (const message of messagesToDeleteFiltered.values()) {
           const ageInMs = Date.now() - message.createdAt.getTime();
           const ageInDays = ageInMs / (1000 * 60 * 60 * 24);
+          //If message is older then 2 weeks
           if (ageInDays > 14) {
+            const DaysEmbed = new EmbedBuilder()
+            .setColor("Red")
+            .setDescription(
+              "***:warning: You cannot delete messages older than 14 days or 2 weeks!***"
+            );
+
             return await interaction.followUp({
               embeds: [DaysEmbed],
               ephemeral: true,
@@ -129,7 +123,7 @@ module.exports = {
           const embed = new EmbedBuilder()
             .setColor("Red")
             .setDescription("***No messages to delete.***");
-          return interaction.followUp({ embeds: [embed], ephemeral: true });
+          return await interaction.followUp({ embeds: [embed], ephemeral: true });
         }
 
         const amount = await channel.bulkDelete(messagesToDeleteFiltered);
@@ -138,7 +132,7 @@ module.exports = {
           .setDescription(
             `***:white_check_mark: Purged ${amount.size} messages.***`
           );
-        await interaction.followUp({ embeds: [embed], ephemeral: true });
+        return await interaction.followUp({ embeds: [embed], ephemeral: true });
       } catch (err) {
         return;
       }

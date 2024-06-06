@@ -1,5 +1,6 @@
+//Imports
 const {
-  PermissionsBitField,
+  PermissionFlagsBits,
   SlashCommandBuilder,
   EmbedBuilder,
 } = require("discord.js");
@@ -27,30 +28,14 @@ module.exports = {
       subcommand
         .setName("disable")
         .setDescription("Disable the message log channel.")
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   async execute(interaction, client) {
-    const { member, guild } = interaction;
-
-    const permission = member.permissions.has(
-      PermissionsBitField.Flags.Administrator
-    );
-
-    const permissionEmbed = new EmbedBuilder()
-      .setColor("Red")
-      .setDescription(
-        "***:warning: You don't have the permission `Administrator` to use this Command.***"
-      );
-    if (!permission)
-      return interaction.reply({
-        embeds: [permissionEmbed],
-        ephemeral: true,
-      });
-
-    const subcommand = interaction.options.getSubcommand();
+    const { guild, options } = interaction;
 
     //Set
-    if (subcommand === "set") {
-      const channel = interaction.options.getChannel("channel");
+    if (options.getSubcommand() === "set") {
+      const channel = options.getChannel("channel");
 
       if (!channel) {
         return await interaction.editReply({
@@ -60,6 +45,7 @@ module.exports = {
         });
       }
 
+      //Channel being set as the log channel
       try {
         await messageLogSchema.findOneAndUpdate(
           { Guild: guild.id },
@@ -72,13 +58,13 @@ module.exports = {
 
       const embed3 = new EmbedBuilder()
         .setColor("Green")
-        .setTitle("Done")
-        .setDescription("The logs channel was set");
+        .setDescription("***:white_check_mark: The logs channel was set***");
       await interaction.reply({ embeds: [embed3] });
     }
 
     //Disable
-    else if (subcommand === "disable") {
+    else if (options.getSubcommand() === "disable") {
+      //Deleting the log channel from the database
       try {
         await messageLogSchema.findOneAndDelete({ Guild: guild.id });
       } catch (err) {
@@ -87,10 +73,8 @@ module.exports = {
 
       const embed4 = new EmbedBuilder()
         .setColor("Red")
-        .setTitle("Done")
-        .setDescription("The logs channel was disabled");
-
-      await interaction.reply({ embeds: [embed4] });
+        .setDescription("***:white_check_mark: The logs channel has been disabled***");
+      return await interaction.reply({ embeds: [embed4] });
     }
   },
 };

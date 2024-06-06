@@ -1,5 +1,6 @@
 const {
     EmbedBuilder,
+    PermissionsBitField,
 } = require("discord.js");
 const reactionRolesSchema = require(`../../schemas/reactionRolesSchema.js`)
 
@@ -84,6 +85,16 @@ module.exports = {
                     .setDescription(`***Added ${role.name}.***`)
                     .setColor("Green")
                 await interaction.reply({ embeds: [embed], ephemeral: true });
+            }
+        } else if (customId === "rrdelete") {
+            if (member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+                await reactionRolesSchema.findOneAndDelete({ guildId: guild.id, channelId: channel.id })
+                return await channel.messages.delete(data.msgId)
+            } else {
+                const embed = new EmbedBuilder()
+                    .setColor("Red")
+                    .setDescription("***:warning: You cannot delete this embed as you don't have the `Administrator` permission.***")
+                return await interaction.reply({ embeds: [embed], ephemeral: true })
             }
         }
     }

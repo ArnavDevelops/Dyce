@@ -13,7 +13,7 @@ module.exports = {
         if (message.content.startsWith(".")) {
             return;
         } else {
-            const data = await autoPublishSchema.findOne({ guildId: guild.id });
+            const data = await autoPublishSchema.findOne({ guildId: guild.id, channelId: channel.id });
 
             if (!data) return;
             if (!data.channelId.includes(channel.id)) return;
@@ -21,7 +21,7 @@ module.exports = {
             try {
                 message.crosspost();
             } catch (err) {
-                console.log(err);
+                return;
             }
         }
     }

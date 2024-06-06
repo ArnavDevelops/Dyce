@@ -1,7 +1,9 @@
+//Imports
 const {
   SlashCommandBuilder,
   EmbedBuilder,
-  PermissionsBitField,
+  PermissionFlagsBits,
+  PermissionsBitField
 } = require("discord.js");
 const modNotesSchema = require("../../schemas/modNotesSchema.js");
 
@@ -29,12 +31,15 @@ module.exports = {
       .setName("note")
       .setDescription("Any notes for this action?.")
       .setRequired(false)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
   async execute(interaction, client) {
-    const { member, options, guild } = interaction;
-    const kickUser = options.getUser("user");
-    const kickMember = await guild.members
-      .fetch(kickUser.id)
+    const { options, guild } = interaction;
+
+    //Variables
+    const user = options.getUser("user");
+    const member = await guild.members
+      .fetch(user.id)
       .catch(async (err) => {
         const failEmbed = new EmbedBuilder()
           .setColor("Red")
@@ -44,39 +49,17 @@ module.exports = {
         await interaction.reply({ embeds: [failEmbed], ephemeral: true });
         return null;
       });
-    if (!kickMember) return;
+    if (!member) return;
     const reason = options.getString("reason");
 
-    const permission = member.permissions.has(
-      PermissionsBitField.Flags.KickMembers || PermissionsBitField.Flags.Administrator
-    );
-
-    const permissionEmbed = new EmbedBuilder()
-      .setColor("Red")
-      .setDescription(
-        "***:warning: You don't have the permission `Kick Members` to use this Command.***"
-      );
-    if (!permission)
-      return interaction.reply({ embeds: [permissionEmbed], ephemeral: true });
-
-    if (kickMember.id == member.id) {
-      const cannotkickyourself = new EmbedBuilder()
-        .setColor("Red")
-        .setDescription("***:x: You can't kick yourself.***");
-      return await interaction.reply({
-        embeds: [cannotkickyourself],
-        ephemeral: true,
-      });
-    }
-
-    if (kickMember.user.bot) {
+    if (member.user.bot) {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setDescription("***:x: You cannot kick bots.***");
       return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
-    if (kickMember.permissions.has(PermissionsBitField.Flags.KickMembers)) {
+    if (member.permissions.has(PermissionsBitField.Flags.KickMembers)) {
       const cannotkickmod = new EmbedBuilder()
         .setColor("Red")
         .setDescription("***:x: I can't kick Moderators and Above.***");
@@ -92,30 +75,31 @@ module.exports = {
           name: "Reason",
           value: `${reason}`,
         });
-      await kickMember.send({ embeds: [dmEmbed] }).catch((err) => {
+      await member.send({ embeds: [dmEmbed] }).catch((err) => {
         return;
       });
 
       const embed = new EmbedBuilder()
         .setColor("Green")
         .setDescription(
-          `***:white_check_mark: Successfully kicked ${kickUser.username}***`
+          `***:white_check_mark: Successfully kicked ${user.username}***`
         )
         .addFields({
           name: "Reason",
           value: `${reason}`,
         });
-      interaction.reply({ embeds: [embed] });
+      await interaction.reply({ embeds: [embed] });
 
-      await kickMember.kick({ reason: reason });
+      await member.kick({ reason: reason });
 
+      //If there is a note for the action
       if (note) {
         await new modNotesSchema({
           guildId: guild.id,
           moderatorId: interaction.user.id,
           command: "/kick",
           date: Date.now(),
-          note: `Moderated: ${kickMember.user.username} | **${note}**`
+          note: `Moderated: ${member.user.username} | **${note}**`
         }).save()
       }
     } catch (err) {

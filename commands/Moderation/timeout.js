@@ -1,14 +1,16 @@
+//Imports
 const {
   SlashCommandBuilder,
   EmbedBuilder,
   PermissionsBitField,
+  PermissionFlagsBits,
 } = require("discord.js");
 const modNotesSchema = require("../../schemas/modNotesSchema.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("timeout")
-    .setDescription("Times out a specific user.")
+    .setDescription("Times out or mutes a specific user.")
     .setDMPermission(false)
     .addUserOption((user) =>
       user.setName("user").setDescription("Select the user.").setRequired(true)
@@ -50,28 +52,15 @@ module.exports = {
         .setName("note")
         .setDescription("Any notes regarding this action?")
         .setRequired(false)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
   async execute(interaction, client) {
     try {
+      //Variables
       const { options, guild, member } = interaction;
       const timeMember = options.getMember("user");
       const duration = options.getString("duration");
       const note = options.getString("note");
-
-      const permission = member.permissions.has(
-        PermissionsBitField.Flags.ModerateMembers
-      );
-
-      const permissionEmbed = new EmbedBuilder()
-        .setColor("Red")
-        .setDescription(
-          "***:warning: You don't have the permission `Moderate Members` to use this Command.***"
-        );
-      if (!permission)
-        return await interaction.reply({
-          embeds: [permissionEmbed],
-          ephemeral: true,
-        });
 
       if (timeMember.communicationDisabledUntilTimestamp !== null) {
         const InTimeoutEmbed = new EmbedBuilder()
@@ -131,6 +120,7 @@ module.exports = {
         return;
       });
 
+      //If there is a note for this action
       if (note) {
         new modNotesSchema({
           guildId: guild.id,

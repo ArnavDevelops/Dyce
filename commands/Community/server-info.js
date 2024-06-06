@@ -1,3 +1,4 @@
+//Imports
 const {
   SlashCommandBuilder,
   EmbedBuilder,
@@ -16,6 +17,7 @@ module.exports = {
     const { guild } = interaction;
     const { name, ownerId, createdTimestamp, memberCount, channels } = guild;
 
+    //Variables
     const icon = guild.iconURL();
     const banner = guild.bannerURL();
     const threads = channels.cache.filter((x) => x.isThread()).size;
@@ -32,20 +34,22 @@ module.exports = {
     const rolesSize = guild.roles.cache.size;
     const id = guild.id;
 
+    //Converting baseVerification from integer/number to a String
     let baseVerification = guild.verificationLevel;
-
     if (baseVerification == 0) baseVerification = "None";
     if (baseVerification == 1) baseVerification = "Low";
     if (baseVerification == 2) baseVerification = "Medium";
     if (baseVerification == 3) baseVerification = "High";
     if (baseVerification == 4) baseVerification = "Very High";
 
+    //Button
     const button = new ButtonBuilder()
       .setCustomId("roles")
       .setLabel(`View Roles [${rolesSize}]`)
       .setStyle(ButtonStyle.Primary);
     const row = new ActionRowBuilder().addComponents(button);
 
+    //Embed
     const embed = new EmbedBuilder()
       .setColor("Random")
       .setAuthor({ name: name, iconURL: icon })
@@ -97,6 +101,6 @@ module.exports = {
         embed.setImage(banner)
     }
 
-    await interaction.reply({ embeds: [embed], components: [row] });
+    return await interaction.reply({ embeds: [embed], components: [row] });
   },
 };

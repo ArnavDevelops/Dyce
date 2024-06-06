@@ -1,7 +1,8 @@
+//Imports
 const {
   SlashCommandBuilder,
   EmbedBuilder,
-  PermissionsBitField,
+  PermissionFlagsBits,
 } = require("discord.js");
 
 module.exports = {
@@ -17,26 +18,14 @@ module.exports = {
         .setName("reason")
         .setDescription("Provide a reason for it.")
         .setRequired(true)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
   async execute(interaction, client) {
     const { options, guild, member } = interaction;
+
+    //Variables
     const user = options.getUser("user");
     const reason = options.getString("reason");
-
-    const permission = member.permissions.has(
-      PermissionsBitField.Flags.BanMembers || PermissionsBitField.Flags.Administrator
-    );
-
-    const permissionEmbed = new EmbedBuilder()
-      .setColor("Red")
-      .setDescription(
-        "***:warning: You don't have the permission `Ban Members` to use this Command.***"
-      );
-    if (!permission)
-      return await interaction.reply({
-        embeds: [permissionEmbed],
-        ephemeral: true,
-      });
 
     try {
       await guild.bans.fetch().then(async (bans) => {
@@ -55,11 +44,11 @@ module.exports = {
         if (!bannedID)
           return await interaction.reply({ embeds: [embed1], ephemeral: true });
 
-        await guild.bans.remove(user, reason).catch((err) => {
+        await guild.bans.remove(user, reason).catch(async(err) => {
           const cantunbanthisUser = new EmbedBuilder()
             .setColor("Red")
             .setDescription("***:warning: I cannot unban this user.***");
-          return interaction.reply({
+          return await interaction.reply({
             embeds: [cantunbanthisUser],
             ephemeral: true,
           });
@@ -70,7 +59,7 @@ module.exports = {
         .setDescription(
           `***:white_check_mark: Successfully unbanned ${user.username} (${user.id}) || reason: ${reason}***`
         );
-      await interaction.reply({ embeds: [ubEmbed] });
+      return await interaction.reply({ embeds: [ubEmbed] });
     } catch (err) {
       return;
     }

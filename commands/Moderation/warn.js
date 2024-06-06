@@ -2,6 +2,7 @@ const {
   SlashCommandBuilder,
   EmbedBuilder,
   PermissionsBitField,
+  PermissionFlagsBits
 } = require("discord.js");
 const warnModel = require("../../schemas/warnModel.js");
 const modNotesSchema = require("../../schemas/modNotesSchema.js")
@@ -25,9 +26,12 @@ module.exports = {
         .setName("note")
         .setDescription("Any notes for this action?.")
         .setRequired(false)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
   async execute(interaction, client) {
     const { options, member, guild } = interaction;
+
+    //Variables
     const e = options.getUser("user");
     const user = await guild.members.fetch(e).catch(async (err) => {
       const failEmbed = new EmbedBuilder()
@@ -41,18 +45,6 @@ module.exports = {
     if (!user) return;
     const reason = options.getString("reason");
     const note = options.getString('note');
-
-    const permission = member.permissions.has(
-      PermissionsBitField.Flags.ManageMessages
-    );
-
-    const permissionEmbed = new EmbedBuilder()
-      .setColor("Red")
-      .setDescription(
-        "***:warning: You don't have the permission `Manage Messages` to use this Command.***"
-      );
-    if (!permission)
-      return interaction.reply({ embeds: [permissionEmbed], ephemeral: true });
 
     if (user.id == member.id) {
       const cannotWarnYourself = new EmbedBuilder()
@@ -81,7 +73,7 @@ module.exports = {
       });
     }
 
-    new warnModel({
+    await new warnModel({
       userId: user.id,
       guildId: interaction.guildId,
       moderatorId: member.id,
@@ -94,7 +86,7 @@ module.exports = {
         `***⚠️ You have been warned in ${guild.name} by ${member.user.username} || Reason: ${reason}***`
       )
       .setColor("Red");
-    user.send({ embeds: [embed] }).catch((err) => {
+    await user.send({ embeds: [embed] }).catch((err) => {
       return;
     });
 
@@ -103,16 +95,20 @@ module.exports = {
         `***⚠️ ${user.user.username} has been warned || Reason: ${reason}***`
       )
       .setColor("Green");
-    interaction.reply({ embeds: [DMembed] });
+    await interaction.reply({ embeds: [DMembed] });
 
-    if (note) {
-      new modNotesSchema({
-        guildId: guild.id,
-        moderatorId: interaction.user.id,
-        command: "/warn",
-        date: Date.now(),
-        note: `Moderated: ${user.user.username} | **${note}**`
-      }).save()
+    try {
+      if (note) {
+        return await new modNotesSchema({
+          guildId: guild.id,
+          moderatorId: interaction.user.id,
+          command: "/warn",
+          date: Date.now(),
+          note: `Moderated: ${user.user.username} | **${note}**`
+        }).save()
+      }
+    } catch (err) {
+      return;
     }
   },
 };
