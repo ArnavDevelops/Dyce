@@ -1,3 +1,4 @@
+//Imports
 const {
   SlashCommandBuilder,
   EmbedBuilder,
@@ -45,7 +46,7 @@ module.exports = {
     .addStringOption((option) =>
       option
         .setName("end_time")
-        .setDescription("Choose the time of the Event to end")
+        .setDescription("Choose the time of the Event to end.")
         .setRequired(true)
         .addChoices(
           { name: "10 minutes", value: "10m" },
@@ -55,15 +56,23 @@ module.exports = {
           { name: "1 hour", value: `1h` }
         )
     )
+    .addRoleOption((option) =>
+      option
+        .setName("role")
+        .setDescription("Role to ping for the event.")
+        .setRequired(true)
+    )
     .addStringOption((option) =>
       option
         .setName("description")
-        .setDescription("Description for the Event")
+        .setDescription("Description for the Event.")
         .setRequired(true)
     ),
   async execute(interaction, client) {
     const { options, member, user, channel, guild } = interaction;
 
+
+    //Getting the Data
     const data = await eventsRoleSchema.findOne({ guildId: guild.id });
     if (!data || !data.roleId) {
       const embed = new EmbedBuilder()
@@ -72,12 +81,17 @@ module.exports = {
       return await interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
+
+    //Variables
     const name = options.getString("title");
     const startTime = ms(options.getString("start_time") || "");
     const endTime = ms(options.getString("end_time") || "");
     const role = guild.roles.cache.get(data.roleId)
     const description = options.getString("description");
+    const roleToPing = guild.roles.cache.get(options.getRole("role").id)
+    
 
+    //Check if the interaction user has the host role or not.
     if (!member.roles.cache.has(role.id)) {
       const permissionEmbed = new EmbedBuilder()
         .setColor("Red")
@@ -88,6 +102,8 @@ module.exports = {
       return interaction.reply({ embeds: [permissionEmbed], ephemeral: true });
     }
 
+
+    //Buttons
     const joinButton = new ButtonBuilder()
       .setCustomId("join")
       .setStyle(ButtonStyle.Primary)
@@ -118,6 +134,8 @@ module.exports = {
     const timestamp = Date.now() + startTime;
     const endTimestamp = timestamp + endTime;
 
+
+    //Embed
     const trainingEmbed = new EmbedBuilder()
       .setTitle(`${name}`)
       .setDescription(`${description}`)
@@ -154,7 +172,9 @@ module.exports = {
       .setColor("Green");
     await interaction.reply({ embeds: [SHEembed], ephemeral: true });
 
+    //Finally, to send the embed, thread
     const message = await channel.send({
+      content: `<@&${roleToPing.id}>`,
       embeds: [trainingEmbed],
       components: [buttonRow],
     });
@@ -169,6 +189,7 @@ module.exports = {
       componentType: ComponentType.Button,
     });
 
+    //Making event data
     try {
       await new eventSchema({
         guildId: guild.id,
