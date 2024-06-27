@@ -81,7 +81,12 @@ module.exports = {
     const endTime = toMs(options.getString("end_time") || "");
     const role = guild.roles.cache.get(data.roleId)
     const description = options.getString("description");
-    const roleToPing = guild.roles.cache.get(options.getRole("role").id)
+    let roleToPing = ``;
+    if(options.getRole("role").id == guild.id) {
+      roleToPing = "@everyone"
+    } else {
+      roleToPing = `<@&${guild.roles.cache.get(options.getRole("role").id).id}>`
+    }
     
     //Check if the interaction user has the host role or not.
     if (!member.roles.cache.has(role.id)) {
@@ -166,7 +171,7 @@ module.exports = {
 
     //Finally, to send the embed, thread
     const message = await channel.send({
-      content: `<@&${roleToPing.id}>`,
+      content: roleToPing,
       embeds: [trainingEmbed],
       components: [buttonRow],
     });

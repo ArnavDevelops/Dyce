@@ -1,5 +1,5 @@
 //Imports
-import chalk from "chalk"
+const chalk = require("chalk")
 
 /**
  * Logs messages with timestamp to the console and writes them to a log file.

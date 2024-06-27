@@ -30,6 +30,7 @@ module.exports = {
 
             const userPoints = await pointsSchema.find({
                 userId: user.id,
+                guildId: guild.id
             });
             const Bots = guild.members.cache.get(user.id);
             if (Bots.user.bot) {

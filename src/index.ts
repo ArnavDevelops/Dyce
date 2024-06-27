@@ -25,10 +25,10 @@ client.buttons = new Collection();
 client.selectMenus = new Collection();
 
 //Commands folder
-const commandFolders = readdirSync("./src/commands");
+const commandFolders = readdirSync(`./${`dist` || `src`}/commands`);
 for (const folder of commandFolders) {
-  const commandFiles = readdirSync(`./src/commands/${folder}`).filter((file: any) =>
-    file.endsWith(`.ts`)
+  const commandFiles = readdirSync(`./${`dist` || `src`}/commands/${folder}`).filter((file: any) =>
+    file.endsWith(`.ts` && `.js`)
   );
   const { commands, commandArray } = client;
   for (const file of commandFiles) {
@@ -41,10 +41,10 @@ for (const folder of commandFolders) {
 }
 
 //Events folder
-const eventFolders = readdirSync("./src/events");
+const eventFolders = readdirSync(`./${`dist` || `src`}/events`);
 for (const folder of eventFolders) {
-  const eventFiles = readdirSync(`./src/events/${folder}`).filter((file: any) =>
-    file.endsWith(`ts`)
+  const eventFiles = readdirSync(`./${`dist` || `src`}/events/${folder}`).filter((file: any) =>
+    file.endsWith(`ts` && `.js`)
   );
   for (const file of eventFiles) {
     const event = require(`./events/${folder}/${file}`);
@@ -75,12 +75,12 @@ try {
 
 //UnhandledRejection
 process.on("unhandledRejection", (err: Error) => {
-  logMessage(err.message, "ERROR");
+  logMessage(err.stack as any, "ERROR");
 });
 
 //UncaughtException
 process.on("uncaughtException", (err: Error) => {
-  logMessage(err.message, "ERROR");
+  logMessage(err.stack as any, "ERROR");
 });
 
 //Bot start-up

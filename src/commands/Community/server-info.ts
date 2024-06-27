@@ -46,6 +46,7 @@ module.exports = {
     const embed = new EmbedBuilder()
       .setColor("Random")
       .setAuthor({ name: name, iconURL: icon })
+      .setDescription(guild.description || "No Description")
       .setThumbnail(icon)
       .setFooter({ text: `ID: ${id} | Server created` })
       .setTimestamp(createdTimestamp)
@@ -58,11 +59,6 @@ module.exports = {
       .addFields({
         name: "Verification Level",
         value: `${baseVerification}`,
-        inline: true,
-      })
-      .addFields({
-        name: "Server Boost(s)",
-        value: `${guild.premiumSubscriptionCount}`,
         inline: true,
       })
       .addFields({
@@ -89,6 +85,10 @@ module.exports = {
         name: "Thread(s)",
         value: `${threads}`,
         inline: true,
+      })
+      .addFields({
+        name: "Nitro stats",
+        value: `Boosts: ${guild.premiumSubscriptionCount} | Tier: ${guild.premiumTier}`,
       });
     if(banner !== null && banner !== undefined) {
         embed.setImage(banner)

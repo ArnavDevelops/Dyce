@@ -72,7 +72,7 @@ module.exports = {
             if (!user) return;
             const points = options.getNumber("points");
 
-            const userPoints = await pointsSchema.findOne({ userId: user.id });
+            const userPoints = await pointsSchema.findOne({ userId: user.id, guildId: guild.id });
             const Bots = guild.members.cache.get(user.id);
             if (Bots.user.bot) {
                 const embed = new EmbedBuilder()
@@ -89,7 +89,7 @@ module.exports = {
                 } else {
                     await pointsSchema.create({
                         userId: user.id,
-                        guildId: interaction.guildId,
+                        guildId: guild.id,
                         points: points,
                     });
                 }
@@ -111,7 +111,7 @@ module.exports = {
 
         //Decrease
         else if (options.getSubcommand() === "decrease") {
-            const { member, guild } = interaction;
+            const { guild } = interaction;
             const e = options.getUser("user");
             const user = await guild.members.fetch(e).catch(async (err: Error) => {
                 const failEmbed = new EmbedBuilder()
@@ -124,18 +124,18 @@ module.exports = {
             });
             if (!user) return;
             const points = options.getNumber("points");
-
-            const userPoints = await pointsSchema.findOne({
-                userId: user.id,
-                guildId: guild.id,
-            });
-            const Bots = guild.members.cache.get(user.id);
-            if (Bots.user.bot) {
+            const member = guild.members.cache.get(user.id);
+            if (member.user.bot) {
                 const embed = new EmbedBuilder()
                     .setColor("Red")
                     .setDescription("***:x: Bots cannot have any points.***");
                 return await interaction.reply({ embeds: [embed], ephemeral: true });
             }
+
+            const userPoints = await pointsSchema.findOne({
+                userId: user.id,
+                guildId: guild.id,
+            });
 
             try {
                 if (!userPoints) {
@@ -145,32 +145,32 @@ module.exports = {
                             "***:warning: The user you mentioned doesn't have any points.***"
                         );
                     return await interaction.reply({ embeds: [noPoints], ephemeral: true });
+                } else {
+                    if (userPoints.points < points) {
+                        const lessPoints = new EmbedBuilder()
+                            .setColor("Red")
+                            .setDescription(
+                                `***:warning: The mentioned user doesn't have that many points (User's points: ${userPoints.points}).***`
+                            );
+                        return await interaction.reply({
+                            embeds: [lessPoints],
+                            ephemeral: true,
+                        });
+                    }
+                    let removedPoints;
+
+                    removedPoints = userPoints.points -= points;
+                    await userPoints.save();
+
+                    const embed = new EmbedBuilder()
+                        .setDescription(`✅ <@${user.id}> now has ***${points}P*** deducted`)
+                        .setFooter({
+                            text: `User's points: ${removedPoints || points}P`,
+                            iconURL: user.user.avatarURL(),
+                        })
+                        .setColor("Green");
+                    return await interaction.reply({ embeds: [embed] });
                 }
-
-                if (userPoints.points < points) {
-                    const lessPoints = new EmbedBuilder()
-                        .setColor("Red")
-                        .setDescription(
-                            `***:warning: The mentioned user doesn't have that many points (User's points: ${userPoints.points}).***`
-                        );
-                    return await interaction.reply({
-                        embeds: [lessPoints],
-                        ephemeral: true,
-                    });
-                }
-                let removedPoints;
-
-                removedPoints = userPoints.points -= points;
-                await userPoints.save();
-
-                const embed = new EmbedBuilder()
-                    .setDescription(`✅ <@${user.id}> now has ***${points}P*** deducted`)
-                    .setFooter({
-                        text: `User's points: ${removedPoints || points}P`,
-                        iconURL: user.user.avatarURL(),
-                    })
-                    .setColor("Green");
-                return await interaction.reply({ embeds: [embed] });
             } catch (err) {
                 return;
             }

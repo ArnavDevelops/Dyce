@@ -54,7 +54,7 @@ module.exports = {
       const neutralList = data.neutralList as any;
 
       const userNicknames = interaction.member.displayName;
-      const maxLength = 20;
+      const maxLength = 10;
       let displayName = `> ${userNicknames.replace(/\s/g, "\u00A0")}`;
       if (displayName.length > maxLength) {
         displayName = `${displayName.substring(0, maxLength - 3)}...`;
