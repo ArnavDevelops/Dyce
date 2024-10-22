@@ -16,7 +16,7 @@ module.exports = {
         newMember.communicationDisabledUntilTimestamp !== null &&
         (oldMember.communicationDisabledUntilTimestamp === null ||
           newMember.communicationDisabledUntilTimestamp >
-            oldMember.communicationDisabledUntilTimestamp) &&
+          oldMember.communicationDisabledUntilTimestamp) &&
         newMember.communicationDisabledUntilTimestamp > Date.now()
       ) {
         const auditLogs = await newMember.guild
@@ -35,8 +35,8 @@ module.exports = {
             `**Member:**\n ${newMember.user.username} (${newMember.id})
         \n**Reason**\n ${reason || "Not specified"}
         \n**Ends at**\n <t:${Math.floor(
-          newMember.communicationDisabledUntilTimestamp / 1000
-        )}:F> (<t:${Math.floor(newMember.communicationDisabledUntilTimestamp / 100)}:R)`
+              newMember.communicationDisabledUntilTimestamp / 1000
+            )}:F> (<t:${Math.floor(newMember.communicationDisabledUntilTimestamp / 100)}:R)`
           )
           .setThumbnail(newMember.user.avatarURL())
           .setFooter({
@@ -90,18 +90,18 @@ module.exports = {
 
       if (oldRoleIDs !== newRoleIDs) {
         oldRoleIDs.forEach((role: any) => {
-          if (!newRoleIDs.includes(role)) rolesArray.push(`<@&${role}> - Removed`)
+          if (!newRoleIDs.includes(role)) rolesArray.push(`- <@&${role}> (\`${role}\`) - Removed`)
         });
 
         newRoleIDs.forEach((role: any) => {
-          if (!oldRoleIDs.includes(role)) rolesArray.push(`<@&${role}> - Added`)
+          if (!oldRoleIDs.includes(role)) rolesArray.push(`- <@&${role}> (\`${role}\`) - Added`)
         });
 
-        if(rolesArray.length > 0) {
+        if (rolesArray.length > 0) {
           changes.push(`\n**Roles**\n${rolesArray.join(`\n`)}`)
         }
       }
-      
+
       if (changes.length === 0) return;
 
       const MemberUpdate = await newMember.guild
@@ -117,8 +117,7 @@ module.exports = {
           .setColor("White")
           .setTitle("Member Updated")
           .setDescription(
-            `**Member:**\n ${newMember.user.username} (${
-              newMember.id
+            `**Member:**\n ${newMember.user.username} (${newMember.id
             })\n${changes.join("\n")}`
           )
           .setThumbnail(newMember.user.avatarURL())

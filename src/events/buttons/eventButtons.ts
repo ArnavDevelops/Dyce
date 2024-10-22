@@ -53,9 +53,9 @@ module.exports = {
       const notJoiningList = data.notJoiningList as any;
       const neutralList = data.neutralList as any;
 
-      const userNicknames = interaction.member.displayName;
-      const maxLength = 10;
-      let displayName = `> ${userNicknames.replace(/\s/g, "\u00A0")}`;
+      const usernames = interaction.user.username;
+      const maxLength = 11;
+      let displayName = `> ${usernames.replace(/\s/g, "\u00A0")}`;
       if (displayName.length > maxLength) {
         displayName = `${displayName.substring(0, maxLength - 3)}...`;
       }
@@ -172,9 +172,9 @@ module.exports = {
             ephemeral: true,
           });
         }
-        if(eventsRoleData == null) return;
+        if (eventsRoleData == null) return;
         const role = guild.roles.cache.get(eventsRoleData.roleId);
-        
+
         if (!interaction.member.roles.cache.has(role.id)) {
           const errorEmbed = new EmbedBuilder()
             .setColor("Red")

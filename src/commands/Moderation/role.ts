@@ -20,6 +20,17 @@ module.exports = {
             )
             .setRequired(true)
         )
+        .addStringOption((s) =>
+          s
+            .setName("filter")
+            .setDescription("What should be ignored while giving the role to everyone? (Default: Bots)")
+            .addChoices(
+              { name: "Bots", value: "bots" },
+              { name: "Humans", value: "humans" },
+              { name: "None", value: "none" }
+            )
+            .setRequired(false)
+        )
     )
     .addSubcommand((subcommand) =>
       subcommand
@@ -89,7 +100,153 @@ module.exports = {
     //All
     if (options.getSubcommand() === "all") {
       const role = options.getRole("role");
+      const filter = options.getString("filter");
 
+      if (filter == "humans") {
+        if (role.name === "@everyone") {
+          const errorembed = new EmbedBuilder()
+            .setColor("Red")
+            .setDescription(
+              "***:warning: you cannot give everyone the `@everyone` role.***"
+            );
+          return await interaction.reply({
+            embeds: [errorembed],
+            ephemeral: true,
+          });
+        }
+
+        await guild.members.fetch();
+        const members = guild.members.cache.filter((m: any) => m.user.bot);
+        const totalMembers = guild.members.cache.filter((m: any) => m.user.bot).size;
+
+        const givingEveryoneEmbed = new EmbedBuilder()
+          .setColor("Random")
+          .setDescription(
+            `***<a:blurpleLoad:1274739092835270668> Giving bots the \`${role.name}\` role...this may take some time.***`
+          );
+        await interaction.reply({ embeds: [givingEveryoneEmbed] });
+        let num = 0;
+        setTimeout(() => {
+          members.forEach(async (m: any) => {
+            await m.roles.add(role).catch((err: Error) => {
+              return;
+            });
+            num++;
+
+            const givingEmbed = new EmbedBuilder()
+              .setDescription(
+                `***<a:burpleLoad:1274739092835270668> ${num} bots have the \`${role.name}\` role now.***`
+              )
+              .setColor(`Yellow`);
+            await interaction.editReply({ content: ``, embeds: [givingEmbed] });
+
+            if (num === totalMembers) {
+              const embed = new EmbedBuilder()
+                .setDescription(
+                  `***:white_check_mark: All the bots have the \`${role.name}\` role now.***`
+                )
+                .setColor(`Yellow`);
+              await interaction.editReply({ content: ``, embeds: [embed] });
+            }
+          });
+        }, 100);
+      } else if (filter == "bots") {
+        if (role.name === "@everyone") {
+          const errorembed = new EmbedBuilder()
+            .setColor("Red")
+            .setDescription(
+              "***:warning: you cannot give everyone the `@everyone` role.***"
+            );
+          return await interaction.reply({
+            embeds: [errorembed],
+            ephemeral: true,
+          });
+        }
+
+        await guild.members.fetch();
+        const members = guild.members.cache.filter((m: any) => !m.user.bot);
+        const totalMembers = guild.members.cache.filter((m: any) => !m.user.bot).size;
+
+        const givingEveryoneEmbed = new EmbedBuilder()
+          .setColor("Random")
+          .setDescription(
+            `***<a:blurpleLoad:1274739092835270668> Giving everyone the \`${role.name}\` role...this may take some time.***`
+          );
+        await interaction.reply({ embeds: [givingEveryoneEmbed] });
+        let num = 0;
+        setTimeout(() => {
+          members.forEach(async (m: any) => {
+            await m.roles.add(role).catch((err: Error) => {
+              return;
+            });
+            num++;
+
+            const givingEmbed = new EmbedBuilder()
+              .setDescription(
+                `***<a:burpleLoad:1274739092835270668> ${num} members have the \`${role.name}\` role now.***`
+              )
+              .setColor(`Yellow`);
+            await interaction.editReply({ content: ``, embeds: [givingEmbed] });
+
+            if (num === totalMembers) {
+              const embed = new EmbedBuilder()
+                .setDescription(
+                  `***:white_check_mark: All the members have the \`${role.name}\` role now.***`
+                )
+                .setColor(`Yellow`);
+              await interaction.editReply({ content: ``, embeds: [embed] });
+            }
+          });
+        }, 100);
+      } else if (filter == "none") {
+        if (role.name === "@everyone") {
+          const errorembed = new EmbedBuilder()
+            .setColor("Red")
+            .setDescription(
+              "***:warning: you cannot give everyone the `@everyone` role.***"
+            );
+          return await interaction.reply({
+            embeds: [errorembed],
+            ephemeral: true,
+          });
+        }
+
+        await guild.members.fetch();
+        const members = guild.members.cache;
+        const totalMembers = guild.members.cache.size;
+
+        const givingEveryoneEmbed = new EmbedBuilder()
+          .setColor("Random")
+          .setDescription(
+            `***<a:blurpleLoad:1274739092835270668> Giving everyone the \`${role.name}\` role...this may take some time.***`
+          );
+        await interaction.reply({ embeds: [givingEveryoneEmbed] });
+        let num = 0;
+        setTimeout(() => {
+          members.forEach(async (m: any) => {
+            await m.roles.add(role).catch((err: Error) => {
+              return;
+            });
+            num++;
+
+            const givingEmbed = new EmbedBuilder()
+              .setDescription(
+                `***<a:burpleLoad:1274739092835270668> ${num} members & bots have the \`${role.name}\` role now.***`
+              )
+              .setColor(`Yellow`);
+            await interaction.editReply({ content: ``, embeds: [givingEmbed] });
+
+            if (num === totalMembers) {
+              const embed = new EmbedBuilder()
+                .setDescription(
+                  `***:white_check_mark: All the members & bots have the \`${role.name}\` role now.***`
+                )
+                .setColor(`Yellow`);
+              await interaction.editReply({ content: ``, embeds: [embed] });
+            }
+          });
+        }, 100);
+      }
       if (role.name === "@everyone") {
         const errorembed = new EmbedBuilder()
           .setColor("Red")
@@ -104,11 +261,12 @@ module.exports = {
 
       await guild.members.fetch();
       const members = guild.members.cache.filter((m: any) => !m.user.bot);
+      const totalMembers = guild.members.cache.filter((m: any) => !m.user.bot).size;
 
       const givingEveryoneEmbed = new EmbedBuilder()
         .setColor("Random")
         .setDescription(
-          `***<a:Loading:1245327249029333002> Giving everyone the \`${role.name}\` role...this may take some time.***`
+          `***<a:blurpleLoad:1274739092835270668> Giving everyone the \`${role.name}\` role...this may take some time.***`
         );
       await interaction.reply({ embeds: [givingEveryoneEmbed] });
       let num = 0;
@@ -121,10 +279,19 @@ module.exports = {
 
           const givingEmbed = new EmbedBuilder()
             .setDescription(
-              `***<a:Loading:1245327249029333002> ${num} members have the \`${role.name}\` role now.***`
+              `***<a:burpleLoad:1274739092835270668> ${num} members have the \`${role.name}\` role now.***`
             )
             .setColor(`Yellow`);
           await interaction.editReply({ content: ``, embeds: [givingEmbed] });
+
+          if (num === totalMembers) {
+            const embed = new EmbedBuilder()
+              .setDescription(
+                `***:white_check_mark: All the members have the \`${role.name}\` role now.***`
+              )
+              .setColor(`Yellow`);
+            await interaction.editReply({ content: ``, embeds: [embed] });
+          }
         });
       }, 100);
     }

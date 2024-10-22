@@ -33,7 +33,9 @@ module.exports = {
           { name: "5 hours", value: "5h" },
           { name: "6 hours", value: "6h" },
           { name: "7 hours", value: "7h" },
-          { name: "8 hours", value: "8h" }
+          { name: "8 hours", value: "8h" },
+          { name: "12 hours", value: "12h" },
+          { name: "24 hours", value: "1d" },
         )
     )
     .addStringOption((option: any) =>
@@ -46,7 +48,14 @@ module.exports = {
           { name: "20 minutes", value: "20m" },
           { name: "30 minutes", value: "30m" },
           { name: "45 minutes", value: "45m" },
-          { name: "1 hour", value: `1h` }
+          { name: "1 hour", value: `1h` },
+          { name: "2 hours", value: "2h" },
+          { name: "3 hours", value: "3h" },
+          { name: "4 hours", value: "4h" },
+          { name: "5 hours", value: "5h" },
+          { name: "6 hours", value: "6h" },
+          { name: "7 hours", value: "7h" },
+          { name: "8 hours", value: "8h" },
         )
     )
     .addRoleOption((option: any) =>
@@ -82,12 +91,12 @@ module.exports = {
     const role = guild.roles.cache.get(data.roleId)
     const description = options.getString("description");
     let roleToPing = ``;
-    if(options.getRole("role").id == guild.id) {
+    if (options.getRole("role").id == guild.id) {
       roleToPing = "@everyone"
     } else {
       roleToPing = `<@&${guild.roles.cache.get(options.getRole("role").id).id}>`
     }
-    
+
     //Check if the interaction user has the host role or not.
     if (!member.roles.cache.has(role.id)) {
       const permissionEmbed = new EmbedBuilder()
