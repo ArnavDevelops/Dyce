@@ -1,5 +1,5 @@
 //Imports
-import logMessage from "../../helpers/logging";
+import logMessage from "../../typings/logging";
 
 //Database Disconnected
 module.exports = {
