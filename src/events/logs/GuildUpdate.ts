@@ -1,15 +1,14 @@
-import { EmbedBuilder } from "discord.js";
+import { EmbedBuilder, TextChannel } from "discord.js";
 import logSchema from "../../schemas/logSchema"
-import getChangedProperties from "../../helpers/getChangedProperties"
+import getChangedProperties from "../../typings/getChangedProperties"
+import { Event } from "../../structures/Event";
 
-module.exports = {
-  name: "guildUpdate",
-  async execute(oldGuild: any, newGuild: any) {
+export default new Event("guildUpdate", async (oldGuild, newGuild) => {
     try {
       const logData = await logSchema.findOne({ Guild: newGuild.id });
       if (!logData) return;
 
-      const logChannel = newGuild.channels.cache.get(logData.Channel);
+      const logChannel = newGuild.channels.cache.get(logData.Channel) as TextChannel;
       if (!logChannel) return;
 
       const changedProperties = await getChangedProperties(oldGuild, newGuild);
@@ -38,5 +37,4 @@ module.exports = {
     } catch (err) {
       return;
     }
-  },
-};
+  })

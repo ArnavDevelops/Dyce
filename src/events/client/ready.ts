@@ -1,20 +1,14 @@
 //Imports
 import { ActivityType } from "discord.js";
-import logMessage from "../../helpers/logging"
-import "dotenv/config"
+import logMessage from "../../typings/logging";
+import "dotenv/config";
+import { Event } from "../../structures/Event";
 
 //Ready event
-module.exports = {
-  name: "ready",
-  async execute(client: any) {
-
-    //Status | Main function
-    await client.user.setActivity({
-      name: "/help", 
-      type: ActivityType.Watching
-    });
-
-    //Bot startup
-    logMessage(`${client.user.username} is online!`, "INFO");
-  },
-};
+export default new Event("clientReady", (client) => {
+  client.user.setActivity({
+    name: "/help",
+    type: ActivityType.Watching,
+  });
+  logMessage(`${client.user.username} is online!`, "INFO");
+});

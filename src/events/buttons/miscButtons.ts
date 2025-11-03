@@ -2,13 +2,11 @@ import { EmbedBuilder } from "discord.js";
 import softbanRoleSchema from "../../schemas/softbanRoleSchema"
 import eventRoleSchema from "../../schemas/eventsRoleSchema"
 import joinRoleSchema from "../../schemas/joinRoleSchema"
+import { Event } from "../../structures/Event";
 
-module.exports = {
-    name: "interactionCreate",
-    async execute(interaction: any, client: any) {
-        const { customId, guild } = interaction;
-
+export default new Event("interactionCreate", async (interaction) => {
         if (!interaction.isButton()) return;
+        const { customId, guild } = interaction;
 
         if (customId == "softban") {
             const role = await guild.roles.create({ name: "softban" });
@@ -50,5 +48,4 @@ module.exports = {
                 ])
             return await interaction.reply({ embeds: [embed], ephemeral: true })
         }
-    }
-}
+    })
