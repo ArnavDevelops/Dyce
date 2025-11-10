@@ -69,19 +69,19 @@ export default new Event(
 
                 newlyGrantedPermissions.forEach((perm: any) => {
                   permArray.push(
-                    `${perm} <:channelperms_check:1189801438679941230> `
+                    `${perm} :x:`
                   );
                 });
 
                 newlyDeniedPermissions.forEach((perm: any) => {
                   permArray.push(
-                    `${perm} <:channelperms_x:1189801446946906132>`
+                    `${perm} :white_check_mark:`
                   );
                 });
 
                 defaultPermissions.forEach((perm: any) => {
                   permArray.push(
-                    `${perm} <:channelperms_default:1189801442735824937> `
+                    `${perm} :white_circle:`
                   );
                 });
                 // Add the changes for this role to the changes array

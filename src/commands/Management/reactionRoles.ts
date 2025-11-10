@@ -107,22 +107,22 @@ export default new Command({
     const embed = new EmbedBuilder()
       .setTitle("Reaction Roles")
       .setDescription(
-        "***<:info:1233294833389539390> Click one or more of the buttons to get the role of your choice!***"
+        "***<:Information:1437468637899395266> Click one or more of the buttons to get the role of your choice!***"
       )
       .addFields({ name: role1.name, value: message1 })
       .addFields({ name: role2.name, value: message2 });
 
     const role1btn = new ButtonBuilder()
-      .setCustomId("role1")
+      .setCustomId("reactionrole:role1")
       .setLabel(role1.name)
       .setStyle(ButtonStyle.Primary);
     const role2btn = new ButtonBuilder()
-      .setCustomId("role2")
+      .setCustomId("reactionrole:role2")
       .setLabel(role2.name)
       .setStyle(ButtonStyle.Primary);
     if (role3) {
       const role3btn = new ButtonBuilder()
-        .setCustomId("role3")
+        .setCustomId("reactionrole:role3")
         .setLabel(role3.name)
         .setStyle(ButtonStyle.Primary);
 
@@ -131,7 +131,7 @@ export default new Command({
 
       if (role4) {
         const role4btn = new ButtonBuilder()
-          .setCustomId("role4")
+          .setCustomId("reactionrole:role4")
           .setLabel(role4.name)
           .setStyle(ButtonStyle.Primary);
 
@@ -148,7 +148,7 @@ export default new Command({
     }
 
     const deleteBtn = new ButtonBuilder()
-      .setCustomId("rrdelete")
+      .setCustomId("reactionrole:delete")
       .setLabel("Delete")
       .setStyle(ButtonStyle.Danger);
     row.addComponents(role1btn, role2btn, deleteBtn);

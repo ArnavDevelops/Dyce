@@ -12,7 +12,7 @@ export default new Command({
   run: async ({ interaction }) => {
 
     const select = new StringSelectMenuBuilder()
-      .setCustomId("helpSelect")
+      .setCustomId(`helpSelect-${interaction.user.id}`)
       .setPlaceholder("Select!")
       .addOptions([
         new StringSelectMenuOptionBuilder({

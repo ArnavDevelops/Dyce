@@ -1,4 +1,3 @@
-//Imports
 import { ActivityType } from "discord.js";
 import logMessage from "../../typings/logging";
 import "dotenv/config";

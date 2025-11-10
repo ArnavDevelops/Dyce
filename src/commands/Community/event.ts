@@ -89,7 +89,7 @@ export default new Command({
     if (!data || !data.roleId) {
       const embed = new EmbedBuilder()
         .setDescription(
-          "***:warning: There's no host role set. Please run /host-role***"
+          "***:warning: There's no host role set. Please run /event-hostrole***"
         )
         .setColor("Red");
       return await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
@@ -125,22 +125,22 @@ export default new Command({
     }
 
     const joinButton = new ButtonBuilder()
-      .setCustomId("join")
+      .setCustomId("event:join")
       .setStyle(ButtonStyle.Primary)
       .setLabel("Join")
       .setDisabled(false);
     const notJoiningButton = new ButtonBuilder()
-      .setCustomId("not_joining")
+      .setCustomId("event:not_joining")
       .setStyle(ButtonStyle.Primary)
       .setLabel("Abstain")
       .setDisabled(false);
     const neutralButton = new ButtonBuilder()
-      .setCustomId("neutral")
+      .setCustomId("event:neutral")
       .setStyle(ButtonStyle.Primary)
       .setLabel("Tentative")
       .setDisabled(false);
     const endButton = new ButtonBuilder()
-      .setCustomId("cancel")
+      .setCustomId("event:cancel")
       .setStyle(ButtonStyle.Danger)
       .setLabel("Cancel")
       .setDisabled(false);

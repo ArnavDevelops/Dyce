@@ -47,16 +47,16 @@ export default new Event("roleUpdate", async (oldRole, newRole) => {
         )
         .map((permission: any) => {
           if (!oldRole.permissions.has(permission)) {
-            return `${permission} <:toggle_on:1189788397053689866>`;
+            return `${permission} <:toggle_on:1437474474357162036>`;
           } else {
-            return `${permission} <:toggle_off:1189789052921204818>`;
+            return `${permission} <:toggle_off:1437474522239340595>`;
           }
         });
 
       oldRole.permissions.toArray().forEach((permission: any) => {
         if (!newRole.permissions.has(permission)) {
           permissionsArray.push(
-            `${permission} <:toggle_off:1189789052921204818>`
+            `${permission} <:toggle_off:1437474522239340595>`
           );
         }
       });
