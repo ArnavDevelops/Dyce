@@ -43,20 +43,6 @@ Please ensure your changes follow the existing code structure and are properly t
 
 ---
 
-## License  
-
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPLv3)**.  
-
-You are free to:
-- Use, modify, and distribute this code.  
-- Deploy the bot publicly or privately.  
-
-However:
-- If you **modify and run Dyce publicly** (for example, hosting your own version of the bot), you **must make your modified source code publicly available** under the same AGPLv3 license.  
-- The license and attribution must remain intact.  
-
-This ensures Dyce stays open-source and transparent, while encouraging collaboration through pull requests rather than closed forks.
-
 ## Relevant Links  
 - [MongoDB](https://www.mongodb.com/)  
 - [discord.js](https://discord.js.org/)  
