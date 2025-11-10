@@ -1,15 +1,13 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
+import { EmbedBuilder, InteractionContextType } from "discord.js";
 import QuickChart from "quickchart-js";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("membercount")
-    .setDescription("Shows the amount of members in the server.")
-    .setDMPermission(false),
-  async execute(interaction: any, client: any) {
+export default new Command({
+  name: "membercount",
+  description: "Counting the members in the server",
+  contexts: [InteractionContextType.Guild],
+  run: async ({ interaction }) => {
 
-    //Variables
     const { guild } = interaction;
     const totalMembers = guild.memberCount;
     const botMembers = guild.members.cache.filter(
@@ -20,13 +18,12 @@ module.exports = {
       (member: any) => Date.now() - member.joinedTimestamp < 24 * 60 * 60 * 1000
     ).size;
     const last7Days = guild.members.cache.filter(
-      (member: any) => Date.now() - member.joinedTimestamp < 7 * 24 * 60 * 60 * 1000
+      (member: any) =>
+        Date.now() - member.joinedTimestamp < 7 * 24 * 60 * 60 * 1000
     ).size;
 
-    //Deferring Reply
-    interaction.deferReply()
+    interaction.deferReply();
 
-    //Make the chart
     try {
       const chart = new QuickChart();
       chart
@@ -68,7 +65,6 @@ module.exports = {
         .setBackgroundColor("#151515");
       const chartUrl = await chart.getShortUrl();
 
-      //Embed
       const embed = new EmbedBuilder()
         .setTitle(`Member count of ${guild.name}`)
         .setThumbnail(guild.iconURL())
@@ -82,4 +78,4 @@ module.exports = {
       return;
     }
   },
-};
+});

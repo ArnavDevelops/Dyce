@@ -1,9 +1,7 @@
-//Imports
 import { ChannelType } from "discord.js";
 import autoPublishSchema from "../../schemas/autoPublishSchema";
 import { Event } from "../../structures/Event";
 
-//Message Create event
 export default new Event("messageCreate", async (message) => {
   const { guild, channel } = message;
 

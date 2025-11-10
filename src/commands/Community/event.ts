@@ -1,115 +1,129 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from "discord.js";
+import {
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType,
+  InteractionContextType,
+  ApplicationCommandOptionType,
+} from "discord.js";
 import { toMs } from "ms-typescript";
-import eventSchema from "../../schemas/eventsSchema"
-import eventsRoleSchema from "../../schemas/eventsRoleSchema"
+import eventSchema from "../../schemas/eventsSchema";
+import eventsRoleSchema from "../../schemas/eventsRoleSchema";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("event")
-    .setDescription("Host an Event.")
-    .setDMPermission(false)
-    .addStringOption((option: any) =>
-      option
-        .setName("title")
-        .setDescription("Title for this Event.")
-        .setRequired(true)
-    )
-    .addStringOption((option: any) =>
-      option
-        .setName("start_time")
-        .setDescription("Choose the time of the Event to begin.")
-        .setRequired(true)
-        .addChoices(
-          { name: "5 minutes", value: "5m" },
-          { name: "10 minutes", value: "10m" },
-          { name: "20 minutes", value: "20m" },
-          { name: "30 minutes", value: "30m" },
-          { name: "40 minutes", value: "40m" },
-          { name: "1 hour", value: "1h" },
-          { name: "2 hours", value: "2h" },
-          { name: "3 hours", value: "3h" },
-          { name: "4 hours", value: "4h" },
-          { name: "5 hours", value: "5h" },
-          { name: "6 hours", value: "6h" },
-          { name: "7 hours", value: "7h" },
-          { name: "8 hours", value: "8h" },
-          { name: "12 hours", value: "12h" },
-          { name: "24 hours", value: "1d" },
-        )
-    )
-    .addStringOption((option: any) =>
-      option
-        .setName("end_time")
-        .setDescription("Choose the time of the Event to end.")
-        .setRequired(true)
-        .addChoices(
-          { name: "10 minutes", value: "10m" },
-          { name: "20 minutes", value: "20m" },
-          { name: "30 minutes", value: "30m" },
-          { name: "45 minutes", value: "45m" },
-          { name: "1 hour", value: `1h` },
-          { name: "2 hours", value: "2h" },
-          { name: "3 hours", value: "3h" },
-          { name: "4 hours", value: "4h" },
-          { name: "5 hours", value: "5h" },
-          { name: "6 hours", value: "6h" },
-          { name: "7 hours", value: "7h" },
-          { name: "8 hours", value: "8h" },
-        )
-    )
-    .addRoleOption((option: any) =>
-      option
-        .setName("role")
-        .setDescription("Role to ping for the event.")
-        .setRequired(true)
-    )
-    .addStringOption((option: any) =>
-      option
-        .setName("description")
-        .setDescription("Description for the Event.")
-        .setRequired(true)
-    ),
-  async execute(interaction: any, client: any) {
-    const { options, member, user, channel, guild } = interaction;
+export default new Command({
+  name: "event",
+  description: "host an event",
+  contexts: [InteractionContextType.Guild],
+  options: [
+    {
+      name: "title",
+      description: "the title of the event",
+      type: ApplicationCommandOptionType.String,
+      required: true,
+    },
+    {
+      name: "description",
+      description: "the descripton of the event",
+      type: ApplicationCommandOptionType.String,
+      required: true,
+    },
+    {
+      name: "role",
+      description: "the role to ping for the event",
+      type: ApplicationCommandOptionType.Role,
+      required: true,
+    },
+    {
+      name: "start_time",
+      description: "the time for the event to begin",
+      type: ApplicationCommandOptionType.String,
+      choices: [
+        { name: "5 minutes", value: "5m" },
+        { name: "10 minutes", value: "10m" },
+        { name: "20 minutes", value: "20m" },
+        { name: "30 minutes", value: "30m" },
+        { name: "40 minutes", value: "40m" },
+        { name: "1 hour", value: "1h" },
+        { name: "2 hours", value: "2h" },
+        { name: "3 hours", value: "3h" },
+        { name: "4 hours", value: "4h" },
+        { name: "5 hours", value: "5h" },
+        { name: "6 hours", value: "6h" },
+        { name: "7 hours", value: "7h" },
+        { name: "8 hours", value: "8h" },
+        { name: "12 hours", value: "12h" },
+        { name: "24 hours", value: "1d" },
+      ],
+      required: true,
+    },
+    {
+      name: "end_time",
+      description: "the time for the event to end",
+      type: ApplicationCommandOptionType.String,
+      choices: [
+        { name: "5 minutes", value: "5m" },
+        { name: "10 minutes", value: "10m" },
+        { name: "20 minutes", value: "20m" },
+        { name: "30 minutes", value: "30m" },
+        { name: "40 minutes", value: "40m" },
+        { name: "1 hour", value: "1h" },
+        { name: "2 hours", value: "2h" },
+        { name: "3 hours", value: "3h" },
+        { name: "4 hours", value: "4h" },
+        { name: "5 hours", value: "5h" },
+        { name: "6 hours", value: "6h" },
+        { name: "7 hours", value: "7h" },
+        { name: "8 hours", value: "8h" },
+        { name: "12 hours", value: "12h" },
+        { name: "24 hours", value: "1d" },
+      ],
+      required: true,
+    },
+  ],
+  run: async ({ interaction, args }) => {
+    const { member, user, channel, guild } = interaction;
 
-
-    //Getting the Data
     const data = await eventsRoleSchema.findOne({ guildId: guild.id });
     if (!data || !data.roleId) {
       const embed = new EmbedBuilder()
-        .setDescription("***:warning: There's no host role set. Please run /host-role***")
+        .setDescription(
+          "***:warning: There's no host role set. Please run /host-role***"
+        )
         .setColor("Red");
-      return await interaction.reply({ embeds: [embed], ephemeral: true });
+      return await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
     }
 
-
-    //Variables
-    const name = options.getString("title");
-    const startTime = toMs(options.getString("start_time") || "");
-    const endTime = toMs(options.getString("end_time") || "");
-    const role = guild.roles.cache.get(data.roleId)
-    const description = options.getString("description");
+    const name = args.getString("title");
+    const startTime = toMs(args.getString("start_time") || "");
+    const endTime = toMs(args.getString("end_time") || "");
+    const role = guild.roles.cache.get(data.roleId);
+    const description = args.getString("description");
     let roleToPing = ``;
-    if (options.getRole("role").id == guild.id) {
-      roleToPing = "@everyone"
+    if (args.getRole("role").id == guild.id) {
+      roleToPing = "@everyone";
     } else {
-      roleToPing = `<@&${guild.roles.cache.get(options.getRole("role").id).id}>`
+      roleToPing = `<@&${guild.roles.cache.get(args.getRole("role").id).id}>`;
     }
 
-    //Check if the interaction user has the host role or not.
     if (!member.roles.cache.has(role.id)) {
       const permissionEmbed = new EmbedBuilder()
         .setColor("Red")
         .setDescription(
           `***:warning: You don't have the required role to use this command.***`
         )
-        .setFooter({ iconURL: "https://cdn.discordapp.com/attachments/1230995581703557163/1231156505580011613/pngimg.com_-_dice_PNG49.png?ex=6635eed8&is=662379d8&hm=1164fed4c3fe58ec4e9f18378e74e938f21f3dd513c06085d1ae336c1c55a63c&", text: "If you think this server doesn't have that role then run /host-role" })
-      return interaction.reply({ embeds: [permissionEmbed], ephemeral: true });
+        .setFooter({
+          iconURL:
+            "https://cdn.discordapp.com/attachments/1230995581703557163/1231156505580011613/pngimg.com_-_dice_PNG49.png?ex=6635eed8&is=662379d8&hm=1164fed4c3fe58ec4e9f18378e74e938f21f3dd513c06085d1ae336c1c55a63c&",
+          text: "If you think this server doesn't have that role then run /host-role",
+        });
+      return interaction.reply({
+        embeds: [permissionEmbed],
+        flags: "Ephemeral",
+      });
     }
 
-
-    //Buttons
     const joinButton = new ButtonBuilder()
       .setCustomId("join")
       .setStyle(ButtonStyle.Primary)
@@ -140,8 +154,6 @@ module.exports = {
     const timestamp = Date.now() + startTime;
     const endTimestamp = timestamp + endTime;
 
-
-    //Embed
     const trainingEmbed = new EmbedBuilder()
       .setTitle(`${name}`)
       .setDescription(`${description}`)
@@ -176,13 +188,12 @@ module.exports = {
     const SHEembed = new EmbedBuilder()
       .setTitle("***Successfully hosted an Event!***")
       .setColor("Green");
-    await interaction.reply({ embeds: [SHEembed], ephemeral: true });
+    await interaction.reply({ embeds: [SHEembed], flags: "Ephemeral" });
 
-    //Finally, to send the embed, thread
     const message = await channel.send({
       content: roleToPing,
       embeds: [trainingEmbed],
-      components: [buttonRow],
+      components: [buttonRow.toJSON()],
     });
 
     const thread = await message.startThread({
@@ -195,7 +206,6 @@ module.exports = {
       componentType: ComponentType.Button,
     });
 
-    //Making event data
     try {
       await new eventSchema({
         guildId: guild.id,
@@ -209,9 +219,9 @@ module.exports = {
         startTime: timestamp,
         endTime: endTimestamp,
         timeItStarts: startTime,
-      }).save()
+      }).save();
     } catch (err) {
       return;
     }
   },
-};
+});

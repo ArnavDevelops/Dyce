@@ -1,16 +1,21 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ChannelType } from "discord.js";
+import {
+  EmbedBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ActionRowBuilder,
+  ChannelType,
+  InteractionContextType,
+} from "discord.js";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("serverinfo")
-    .setDescription("Check the information about this server.")
-    .setDMPermission(false),
-  async execute(interaction: any, client: any) {
+export default new Command({
+  name: "serverinfo",
+  description: "Information about the server",
+  contexts: [InteractionContextType.Guild],
+  run: async ({ interaction }) => {
     const { guild } = interaction;
     const { name, ownerId, createdTimestamp, memberCount, channels } = guild;
 
-    //Variables
     const icon = guild.iconURL();
     const banner = guild.bannerURL();
     const threads = channels.cache.filter((x: any) => x.isThread()).size;
@@ -27,22 +32,16 @@ module.exports = {
     const rolesSize = guild.roles.cache.size;
     const id = guild.id;
 
-    //Converting baseVerification from integer/number to a String
-    let baseVerification = guild.verificationLevel;
-    if (baseVerification == 0) baseVerification = "None";
-    if (baseVerification == 1) baseVerification = "Low";
-    if (baseVerification == 2) baseVerification = "Medium";
-    if (baseVerification == 3) baseVerification = "High";
-    if (baseVerification == 4) baseVerification = "Very High";
+    const verificationLevels = ["None", "Low", "Medium", "High", "Very High"];
+    const verificationText =
+      verificationLevels[guild.verificationLevel] ?? "Unknown";
 
-    //Button
     const button = new ButtonBuilder()
       .setCustomId("roles")
       .setLabel(`View Roles [${rolesSize}]`)
       .setStyle(ButtonStyle.Primary);
     const row = new ActionRowBuilder().addComponents(button);
 
-    //Embed
     const embed = new EmbedBuilder()
       .setColor("Random")
       .setAuthor({ name: name, iconURL: icon })
@@ -58,7 +57,7 @@ module.exports = {
       })
       .addFields({
         name: "Verification Level",
-        value: `${baseVerification}`,
+        value: `${verificationText}`,
         inline: true,
       })
       .addFields({
@@ -90,10 +89,13 @@ module.exports = {
         name: "Nitro stats",
         value: `Boosts: ${guild.premiumSubscriptionCount} | Tier: ${guild.premiumTier}`,
       });
-    if(banner !== null && banner !== undefined) {
-        embed.setImage(banner)
+    if (banner !== null && banner !== undefined) {
+      embed.setImage(banner);
     }
 
-    return await interaction.reply({ embeds: [embed], components: [row] });
+    return await interaction.reply({
+      embeds: [embed],
+      components: [row.toJSON()],
+    });
   },
-};
+});

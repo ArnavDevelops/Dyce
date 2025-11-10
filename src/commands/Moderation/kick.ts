@@ -1,39 +1,42 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, PermissionFlagsBits } from "discord.js";
-import modNotesSchema from "../../schemas/modNotesSchema"
+import {
+  EmbedBuilder,
+  PermissionsBitField,
+  InteractionContextType,
+  ApplicationCommandOptionType,
+} from "discord.js";
+import modNotesSchema from "../../schemas/modNotesSchema";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("kick")
-    .setDescription("Kick a user.")
-    .setDMPermission(false)
-    .addUserOption((user) =>
-      user
-        .setName("user")
-        .setDescription(
-          "Select the user you want to ban, you can also use user ID."
-        )
-        .setRequired(true)
-    )
-    .addStringOption((reason) =>
-      reason
-        .setName("reason")
-        .setDescription("Provide a reason for it.")
-        .setRequired(true)
-    )
-    .addStringOption((reason) =>
-    reason
-      .setName("note")
-      .setDescription("Any notes for this action?.")
-      .setRequired(false)
-    )
-    .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
-  async execute(interaction: any, client: any) {
-    const { options, guild } = interaction;
+export default new Command({
+  name: "kick",
+  description: "Kicks a user",
+  defaultMemberPermissions: ["KickMembers"],
+  contexts: [InteractionContextType.Guild],
+  options: [
+    {
+      name: "user",
+      description: "Select the user or input a userID",
+      type: ApplicationCommandOptionType.User,
+      required: true,
+    },
+    {
+      name: "reason",
+      description: "The reason",
+      type: ApplicationCommandOptionType.String,
+      required: true,
+    },
+    {
+      name: "note",
+      description: "Anything to note about this particular action?",
+      type: ApplicationCommandOptionType.String,
+      required: false,
+    },
+  ],
+  run: async ({ interaction, args }) => {
+    const { guild } = interaction;
 
-    //Variables
-    const user = options.getUser("user");
-    const note = options.getString("note")
+    const user = args.getUser("user");
+    const note = args.getString("note");
     const member = await guild.members
       .fetch(user.id)
       .catch(async (err: Error) => {
@@ -42,17 +45,17 @@ module.exports = {
           .setDescription(
             "***:warning: There was an error kicking the user, please make sure that the user is in the server.***"
           );
-        await interaction.reply({ embeds: [failEmbed], ephemeral: true });
+        await interaction.reply({ embeds: [failEmbed], flags: ["Ephemeral"] });
         return null;
       });
     if (!member) return;
-    const reason = options.getString("reason");
+    const reason = args.getString("reason");
 
     if (member.user.bot) {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setDescription("***:x: You cannot kick bots.***");
-      return interaction.reply({ embeds: [embed], ephemeral: true });
+      return interaction.reply({ embeds: [embed], flags: ["Ephemeral"] });
     }
 
     if (member.permissions.has(PermissionsBitField.Flags.KickMembers)) {
@@ -88,18 +91,17 @@ module.exports = {
 
       await member.kick({ reason: reason });
 
-      //If there is a note for the action
       if (note) {
         await new modNotesSchema({
           guildId: guild.id,
           moderatorId: interaction.user.id,
           command: "/kick",
           date: Date.now(),
-          note: `Moderated: ${member.user.username} | **${note}**`
-        }).save()
+          note: `Moderated: ${member.user.username} | **${note}**`,
+        }).save();
       }
     } catch (err) {
       return;
     }
   },
-};
+});

@@ -4,8 +4,8 @@ import {
   ButtonInteraction,
 } from "discord.js";
 import { Event } from "../../structures/Event";
-import { client } from "../..";
 import { ExtendedInteraction } from "../../typings/Command";
+import { client } from "../..";
 
 export default new Event("interactionCreate", async (interaction) => {
   //Application Commands
@@ -61,7 +61,7 @@ export default new Event("interactionCreate", async (interaction) => {
         );
       await interaction.reply({
         embeds: [commandErrorEmbed],
-        ephemeral: true,
+        flags: "Ephemeral",
       });
     }
   }

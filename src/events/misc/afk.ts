@@ -1,8 +1,6 @@
-//Imports
 import afkSchema from "../../schemas/afkSchema";
 import { Event } from "../../structures/Event";
 
-//Message Create event
 export default new Event("messageCreate", async (message) => {
   const { guild } = message;
 

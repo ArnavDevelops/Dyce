@@ -1,66 +1,90 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from "discord.js";
-import messageLogSchema from "../../schemas/logSchema"
+import {
+  InteractionContextType,
+  EmbedBuilder,
+  ApplicationCommandOptionType,
+  TextChannel,
+} from "discord.js";
+import messageLogSchema from "../../schemas/logSchema";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("logs")
-    .setDescription("Set the message log channel for the server.")
-    .setDMPermission(false)
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("set")
-        .setDescription("Set the message log channel.")
-        .addChannelOption((option) =>
-          option
-            .setName("channel")
-            .setDescription(
-              "Specify the channel to be the message log channel."
-            )
-            .setRequired(true)
-        )
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("disable")
-        .setDescription("Disable the message log channel.")
-    )
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-  async execute(interaction: any, client: any) {
-    const { guild, options } = interaction;
+export default new Command({
+  name: "logs",
+  description: "sets your log channel",
+  contexts: [InteractionContextType.Guild],
+  defaultMemberPermissions: ["Administrator"],
+  options: [
+    {
+      name: "set",
+      description: "set or replace your log channel",
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: "channel",
+          description: "set the channel",
+          type: ApplicationCommandOptionType.Channel,
+          required: true,
+        },
+      ],
+    },
+    {
+      name: "disable",
+      description: "Disable the log channel",
+      type: ApplicationCommandOptionType.Subcommand,
+    },
+  ],
+  run: async ({ interaction, args }) => {
+    const { guild } = interaction;
 
-    //Set
-    if (options.getSubcommand() === "set") {
-      const channel = options.getChannel("channel");
-
-      if (!channel) {
-        return await interaction.editReply({
-          content: "Please select a valid text channel.",
-          components: [],
-          embeds: [],
+    if (args.getSubcommand() === "set") {
+      const channel = args.getChannel("channel");
+      const data = await messageLogSchema.findOne({
+        Guild: guild.id,
+        Channel: channel.id,
+      });
+      if (data) {
+        const embed = new EmbedBuilder()
+          .setColor("Red")
+          .setDescription(
+            "***:warning: You already had this channel set for logs***"
+          );
+        return await interaction.reply({
+          embeds: [embed],
+          flags: "Ephemeral",
         });
       }
 
-      //Channel being set as the log channel
-      try {
-        await messageLogSchema.findOneAndUpdate(
-          { Guild: guild.id },
-          { Guild: guild.id, Channel: channel.id },
-          { upsert: true }
-        );
-      } catch (err) {
-        return;
-      }
+      if (!data) {
+        if (!channel || !(channel instanceof TextChannel)) {
+          const embed = new EmbedBuilder()
+            .setColor("Red")
+            .setDescription(
+              "***:warning: Please select a valid text channel***"
+            );
+          return await interaction.reply({
+            embeds: [embed],
+            flags: "Ephemeral",
+          });
+        }
 
-      const embed3 = new EmbedBuilder()
-        .setColor("Green")
-        .setDescription("***:white_check_mark: The logs channel was set***");
-      await interaction.reply({ embeds: [embed3] });
+        try {
+          await messageLogSchema.findOneAndUpdate(
+            { Guild: guild.id },
+            { Guild: guild.id, Channel: channel.id },
+            { upsert: true }
+          );
+        } catch (err) {
+          return;
+        }
+
+        const embed3 = new EmbedBuilder()
+          .setColor("Green")
+          .setDescription("***:white_check_mark: The logs channel was set***");
+        await interaction.reply({ embeds: [embed3], flags: "Ephemeral" });
+      }
     }
 
-    //Disable
-    else if (options.getSubcommand() === "disable") {
-      //Deleting the log channel from the database
+
+    else if (args.getSubcommand() === "disable") {
       try {
         await messageLogSchema.findOneAndDelete({ Guild: guild.id });
       } catch (err) {
@@ -69,8 +93,10 @@ module.exports = {
 
       const embed4 = new EmbedBuilder()
         .setColor("Red")
-        .setDescription("***:white_check_mark: The logs channel has been disabled***");
-      return await interaction.reply({ embeds: [embed4] });
+        .setDescription(
+          "***:white_check_mark: The logs channel has been disabled***"
+        );
+      return await interaction.reply({ embeds: [embed4], flags: "Ephemeral" });
     }
   },
-};
+});

@@ -1,106 +1,110 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from "discord.js";
+import {
+  EmbedBuilder,
+  InteractionContextType,
+  ApplicationCommandOptionType,
+} from "discord.js";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("role")
-    .setDescription(
-      "Role everyone, change someone's roles, or add or remove someone's roles."
-    )
-    .setDMPermission(false)
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("all")
-        .setDescription("Role everyone in the server.")
-        .addRoleOption((role) =>
-          role
-            .setName("role")
-            .setDescription(
-              "Which role you wanna give to everyone in the server."
-            )
-            .setRequired(true)
-        )
-        .addStringOption((s) =>
-          s
-            .setName("filter")
-            .setDescription("What should be ignored while giving the role to everyone? (Default: Bots)")
-            .addChoices(
-              { name: "Bots", value: "bots" },
-              { name: "Humans", value: "humans" },
-              { name: "None", value: "none" }
-            )
-            .setRequired(false)
-        )
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("change")
-        .setDescription(`Change somebody's role.`)
-        .addUserOption((user) =>
-          user
-            .setName("user")
-            .setDescription("Select the user.")
-            .setRequired(true)
-        )
-        .addRoleOption((role) =>
-          role
-            .setName("add")
-            .setDescription("Which role you wanna give to a specific person.")
-            .setRequired(true)
-        )
-        .addRoleOption((role) =>
-          role
-            .setName("remove")
-            .setDescription(
-              "Which role you wanna remove from a specific person."
-            )
-            .setRequired(true)
-        )
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("give")
-        .setDescription(`Give someone a role.`)
-        .addUserOption((user) =>
-          user
-            .setName("user")
-            .setDescription("Select the user.")
-            .setRequired(true)
-        )
-        .addRoleOption((role) =>
-          role
-            .setName("add")
-            .setDescription("Which role you wanna add to the user.")
-            .setRequired(true)
-        )
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("remove")
-        .setDescription(`Remove someone's role.`)
-        .addUserOption((user) =>
-          user
-            .setName("user")
-            .setDescription("Select the user.")
-            .setRequired(true)
-        )
-        .addRoleOption((role) =>
-          role
-            .setName("remove")
-            .setDescription("Which role you wanna remove from the user.")
-            .setRequired(true)
-        )
-    )
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
-  async execute(interaction: any, client: any) {
-    const { options, guild } = interaction;
+export default new Command({
+  name: "role",
+  description: "Assign or remove roles to a user or from @everyone",
+  defaultMemberPermissions: ["ManageRoles"],
+  contexts: [InteractionContextType.Guild],
+  options: [
+    {
+      name: "all",
+      description: "Gives a role to everyone",
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: "role",
+          description: "Select the role.",
+          type: ApplicationCommandOptionType.Role,
+          required: true,
+        },
+        {
+          name: "filter",
+          description: "Roles to ignore (Default: Bots)",
+          type: ApplicationCommandOptionType.String,
+          choices: [
+            { name: "Bots", value: "bots" },
+            { name: "Humans", value: "humans" },
+            { name: "None", value: "none" },
+          ],
+          required: true,
+        },
+      ],
+    },
+    {
+      name: "change",
+      description: "Change someone's roles",
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: "user",
+          description: "Select the User",
+          type: ApplicationCommandOptionType.User,
+          required: true,
+        },
+        {
+          name: "add",
+          description: "Select the role to add",
+          type: ApplicationCommandOptionType.Role,
+          required: true,
+        },
+        {
+          name: "remove",
+          description: "Select the role to remove",
+          type: ApplicationCommandOptionType.Role,
+          required: true,
+        },
+      ],
+    },
+    {
+      name: "give",
+      description: "Assign someone a role",
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: "user",
+          description: "Select the User",
+          type: ApplicationCommandOptionType.User,
+          required: true,
+        },
+        {
+          name: "role",
+          description: "Select the role to add",
+          type: ApplicationCommandOptionType.Role,
+          required: true,
+        },
+      ],
+    },
+    {
+      name: "remove",
+      description: "Remove a role from someone",
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: "user",
+          description: "Select the User",
+          type: ApplicationCommandOptionType.User,
+          required: true,
+        },
+        {
+          name: "role",
+          description: "Select the role to add",
+          type: ApplicationCommandOptionType.Role,
+          required: true,
+        },
+      ],
+    },
+  ],
+  run: async ({ interaction, args }) => {
+    const { guild } = interaction;
 
-
-
-    //All
-    if (options.getSubcommand() === "all") {
-      const role = options.getRole("role");
-      const filter = options.getString("filter");
+    if (args.getSubcommand() === "all") {
+      const role = args.getRole("role");
+      const filter = args.getString("filter");
 
       if (filter == "humans") {
         if (role.name === "@everyone") {
@@ -111,13 +115,15 @@ module.exports = {
             );
           return await interaction.reply({
             embeds: [errorembed],
-            ephemeral: true,
+            flags: ["Ephemeral"],
           });
         }
 
         await guild.members.fetch();
         const members = guild.members.cache.filter((m: any) => m.user.bot);
-        const totalMembers = guild.members.cache.filter((m: any) => m.user.bot).size;
+        const totalMembers = guild.members.cache.filter(
+          (m: any) => m.user.bot
+        ).size;
 
         const givingEveryoneEmbed = new EmbedBuilder()
           .setColor("Random")
@@ -159,13 +165,15 @@ module.exports = {
             );
           return await interaction.reply({
             embeds: [errorembed],
-            ephemeral: true,
+            flags: ["Ephemeral"],
           });
         }
 
         await guild.members.fetch();
         const members = guild.members.cache.filter((m: any) => !m.user.bot);
-        const totalMembers = guild.members.cache.filter((m: any) => !m.user.bot).size;
+        const totalMembers = guild.members.cache.filter(
+          (m: any) => !m.user.bot
+        ).size;
 
         const givingEveryoneEmbed = new EmbedBuilder()
           .setColor("Random")
@@ -207,7 +215,7 @@ module.exports = {
             );
           return await interaction.reply({
             embeds: [errorembed],
-            ephemeral: true,
+            flags: ["Ephemeral"],
           });
         }
 
@@ -255,13 +263,15 @@ module.exports = {
           );
         return await interaction.reply({
           embeds: [errorembed],
-          ephemeral: true,
+          flags: ["Ephemeral"],
         });
       }
 
       await guild.members.fetch();
       const members = guild.members.cache.filter((m: any) => !m.user.bot);
-      const totalMembers = guild.members.cache.filter((m: any) => !m.user.bot).size;
+      const totalMembers = guild.members.cache.filter(
+        (m: any) => !m.user.bot
+      ).size;
 
       const givingEveryoneEmbed = new EmbedBuilder()
         .setColor("Random")
@@ -294,25 +304,22 @@ module.exports = {
           }
         });
       }, 100);
-    }
-
-
-
-    //Change
-    else if (options.getSubcommand() === "change") {
-      const user = options.getUser("user");
-      const person = await guild.members.fetch(user).catch(async (err: Error) => {
-        const failEmbed = new EmbedBuilder()
-          .setColor("Red")
-          .setDescription(
-            "***:warning: There was an error searching for the user, please make sure that the user is in the server.***"
-          );
-        await interaction.reply({ embeds: [failEmbed], ephemeral: true });
-        return null;
-      });
+    } else if (args.getSubcommand() === "change") {
+      const user = args.getUser("user");
+      const person = await guild.members
+        .fetch(user)
+        .catch(async (err: Error) => {
+          const failEmbed = new EmbedBuilder()
+            .setColor("Red")
+            .setDescription(
+              "***:warning: There was an error searching for the user, please make sure that the user is in the server.***"
+            );
+          await interaction.reply({ embeds: [failEmbed], flags: ["Ephemeral"] });
+          return null;
+        });
       if (!person) return;
-      const addRole = options.getRole("add");
-      const removeRole = options.getRole("remove");
+      const addRole = args.getRole("add");
+      const removeRole = args.getRole("remove");
 
       if (addRole.name === "@everyone" && removeRole.name === "@everyone") {
         const errorembed = new EmbedBuilder()
@@ -322,7 +329,7 @@ module.exports = {
           );
         return await interaction.reply({
           embeds: [errorembed],
-          ephemeral: true,
+          flags: ["Ephemeral"],
         });
       }
 
@@ -336,17 +343,13 @@ module.exports = {
             `***:white_check_mark: Successfully added ${addRole} and removed ${removeRole} from ${user.toString()}.***`
           )
           .setColor("Green");
-        interaction.reply({ embeds: [addEmbed], ephemeral: true });
+        interaction.reply({ embeds: [addEmbed], flags: ["Ephemeral"] });
       } catch (error) {
         return;
       }
-    }
-
-
-
-    //Give Subcommand
-    else if (options.getSubcommand() === "give") {
-      const role = options.getRole("add");
+    } else if (args.getSubcommand() === "give") {
+      console.log("this")
+      const role = args.getRole("role");
 
       if (role.name === "@everyone") {
         const errorembed = new EmbedBuilder()
@@ -356,11 +359,11 @@ module.exports = {
           );
         return await interaction.reply({
           embeds: [errorembed],
-          ephemeral: true,
+          flags: ["Ephemeral"],
         });
       }
 
-      const user = options.getUser(`user`);
+      const user = args.getUser(`user`);
       const targetMember = await guild.members
         .fetch(user)
         .catch(async (err: Error) => {
@@ -369,7 +372,7 @@ module.exports = {
             .setDescription(
               "***:warning: There was an error searching for the user, please make sure that the user is in the server.***"
             );
-          await interaction.reply({ embeds: [failEmbed], ephemeral: true });
+          await interaction.reply({ embeds: [failEmbed], flags: ["Ephemeral"] });
           return null;
         });
       if (!targetMember) return;
@@ -386,27 +389,22 @@ module.exports = {
       } catch (error) {
         return;
       }
-    }
-
-
-
-    //Remove Subcommand
-    else if (options.getSubcommand() === "remove") {
-      const role = options.getRole("remove");
+    } else if (args.getSubcommand() === "remove") {
+      const role = args.getRole("role");
 
       if (role.name === "@everyone") {
         const errorembed = new EmbedBuilder()
           .setColor("Red")
           .setDescription(
-            "***:warning: you cannot give the role \`@everyone\`.***"
+            "***:warning: you cannot give the role `@everyone`.***"
           );
         return await interaction.reply({
           embeds: [errorembed],
-          ephemeral: true,
+          flags: ["Ephemeral"],
         });
       }
 
-      const user = options.getUser("user");
+      const user = args.getUser("user");
       const targetMember = await guild.members
         .fetch(user)
         .catch(async (err: Error) => {
@@ -415,7 +413,7 @@ module.exports = {
             .setDescription(
               "***:warning: There was an error searching for the user, make sure that the user is in the server.***"
             );
-          await interaction.reply({ embeds: [failEmbed], ephemeral: true });
+          await interaction.reply({ embeds: [failEmbed], flags: ["Ephemeral"] });
           return null;
         });
       if (!targetMember) return;
@@ -426,7 +424,7 @@ module.exports = {
             "***:x: Make sure that the user has the role you've mentioned.***"
           )
           .setColor(`Red`);
-        return await interaction.reply({ embeds: [embed1], ephemeral: true });
+        return await interaction.reply({ embeds: [embed1], flags: ["Ephemeral"] });
       }
       try {
         //Removes Role
@@ -442,4 +440,4 @@ module.exports = {
       }
     }
   },
-};
+});

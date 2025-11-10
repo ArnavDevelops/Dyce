@@ -1,25 +1,44 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder, PermissionsBitField,PermissionFlagsBits } from "discord.js";
+import {
+  EmbedBuilder,
+  PermissionsBitField,
+  InteractionContextType,
+  ApplicationCommandOptionType,
+  GuildMember,
+} from "discord.js";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("unmute")
-    .setDescription("Removes the timeout from a already muted user.")
-    .setDMPermission(false)
-    .addUserOption((user) =>
-      user.setName("user").setDescription("Select the user.").setRequired(true)
-    )
-    .addStringOption((reason) =>
-      reason.setName("reason").setDescription("Please provide a reason for it.").setRequired(true)
-    )
-    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
-  async execute(interaction: any, client: any) {
+export default new Command({
+  name: "unmute",
+  description: "Kicks a user",
+  defaultMemberPermissions: ["ModerateMembers"],
+  contexts: [InteractionContextType.Guild],
+  options: [
+    {
+      name: "user",
+      description: "Select the user or input a userID",
+      type: ApplicationCommandOptionType.User,
+      required: true,
+    },
+    {
+      name: "reason",
+      description: "The reason",
+      type: ApplicationCommandOptionType.String,
+      required: true,
+    },
+    {
+      name: "note",
+      description: "Anything to note about this particular action?",
+      type: ApplicationCommandOptionType.String,
+      required: false,
+    },
+  ],
+  run: async ({ interaction, args }) => {
     try {
-      const { options, guild, member } = interaction;
+      const { guild, member } = interaction;
 
-      //Variables
-      const untimeMember = options.getMember("user");
-      const reason = options.getString("reason")
+      const untimeMember = args.getMember("user") as GuildMember;
+      if (!untimeMember) return;
+      const reason = args.getString("reason");
 
       if (untimeMember.communicationDisabledUntilTimestamp < Date.now()) {
         const notInTimeoutEmbed = new EmbedBuilder()
@@ -29,7 +48,7 @@ module.exports = {
           .setColor("Red");
         return await interaction.reply({
           embeds: [notInTimeoutEmbed],
-          ephemeral: true,
+          flags: ["Ephemeral"],
         });
       }
 
@@ -41,7 +60,7 @@ module.exports = {
       if (
         untimeMember.permissions.has(PermissionsBitField.Flags.ManageMessages)
       )
-        return await interaction.reply({ embeds: [embed4], ephemeral: true });
+        return await interaction.reply({ embeds: [embed4], flags: ["Ephemeral"] });
 
       await untimeMember.timeout(null, reason);
 
@@ -61,15 +80,16 @@ module.exports = {
           `***⌛ ${untimeMember.user.username}'s timeout/mute has been removed***`
         )
         .addFields({ name: "Reason", value: reason });
-      return await interaction.reply({ embeds: [embed1] }).catch((err: Error) => {
-        return;
-      });
-      
+      return await interaction
+        .reply({ embeds: [embed1] })
+        .catch((err: Error) => {
+          return;
+        });
     } catch (err) {
       const embed2 = new EmbedBuilder()
         .setDescription("***:warning: This user is not in this server.***")
         .setColor(`Red`);
-      return await interaction.reply({ embeds: [embed2], ephemeral: true });
+      return await interaction.reply({ embeds: [embed2], flags: ["Ephemeral"] });
     }
   },
-};
+});

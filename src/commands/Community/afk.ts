@@ -1,25 +1,26 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
+import {
+  EmbedBuilder,
+  InteractionContextType,
+  ApplicationCommandOptionType,
+} from "discord.js";
 import afkSchema from "../../schemas/afkSchema";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("afk")
-    .setDescription(
-      "Sets your status to AFK so that people can know that you're AFK"
-    )
-    .addStringOption((s) =>
-      s
-        .setName("reason")
-        .setDescription("Reason why you are going afk?")
-        .setRequired(true)
-    )
-    .setDMPermission(false),
-  async execute(interaction: any, client: any) {
-    const { guild, options, user, member } = interaction;
+export default new Command({
+  name: "afk",
+  description: "Go afk",
+  contexts: [InteractionContextType.Guild],
+  options: [
+    {
+      name: "reason",
+      description: "The reason",
+      type: ApplicationCommandOptionType.String,
+    },
+  ],
+  run: async ({ interaction, args }) => {
+    const { guild, user, member } = interaction;
 
-    //Variables
-    const reason = options.getString("reason");
+    const reason = args.getString("reason");
 
     const data = await afkSchema.findOne({
       guildId: guild.id,
@@ -29,7 +30,7 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setDescription("***:warning: You're already AFK***");
-      return await interaction.reply({ embeds: [embed], ephemeral: true });
+      return await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
     } else {
       const nickname = member.nickname || user.username;
 
@@ -38,7 +39,7 @@ module.exports = {
         .setDescription(
           "***:white_check_mark: Successfully set your status to AFK***"
         );
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
 
       await new afkSchema({
         guildId: guild.id,
@@ -53,4 +54,4 @@ module.exports = {
       });
     }
   },
-};
+});

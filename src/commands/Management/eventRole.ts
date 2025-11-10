@@ -1,58 +1,69 @@
-//Import
-import eventRoleSchema from "../../schemas/eventsRoleSchema"
-import { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, PermissionFlagsBits } from "discord.js";
+import eventRoleSchema from "../../schemas/eventsRoleSchema";
+import {
+  EmbedBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ActionRowBuilder,
+  ApplicationCommandOptionType,
+  InteractionContextType,
+} from "discord.js";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-    data: new SlashCommandBuilder()
-        .setName("event-hostrole")
-        .setDescription("What should be the role required to host an event?")
-        .addRoleOption((r) =>
-            r
-                .setName("role")
-                .setDescription("Choose the role.")
-                .setRequired(true)
-        )
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-        .setDMPermission(false),
-    async execute(interaction: any, client: any) {
-        const { options, guild, member } = interaction;
-        const getRole = options.getRole("role")
-        const role = guild.roles.cache.get(getRole.id);
+export default new Command({
+  name: "event-hostrole",
+  description: "the role that hosts an event",
+  options: [
+    {
+      name: "role",
+      description: "choose the role",
+      type: ApplicationCommandOptionType.Role,
+      required: true
+    },
+  ],
+  defaultMemberPermissions: ["Administrator"],
+  contexts: [InteractionContextType.Guild],
+  run: async ({ interaction, args }) => {
+    const { guild } = interaction;
+    const getRole = args.getRole("role");
+    const role = guild.roles.cache.get(getRole.id);
 
-        try {
-            //Getting the Data
-            const data = await eventRoleSchema.findOne({ guildId: guild.id });
+    try {
+      const data = await eventRoleSchema.findOne({ guildId: guild.id });
 
-            //If there is no data or a roleId
-            if (!data || !data.roleId) {
-                const embed = new EmbedBuilder()
-                    .setTitle("Role chosen")
-                    .setDescription(`The role \`${role.name}\` has been successfully selected as the role required to host.`)
-                    .setColor("Green")
-                interaction.reply({ embeds: [embed], ephemeral: true });
+      if (!data || !data.roleId) {
+        const embed = new EmbedBuilder()
+          .setTitle("Role chosen")
+          .setDescription(
+            `The role \`${role.name}\` has been successfully selected as the role required to host.`
+          )
+          .setColor("Green");
+        interaction.reply({ embeds: [embed], flags: "Ephemeral" });
 
-                return await new eventRoleSchema({
-                    guildId: guild.id,
-                    roleId: role.id
-                }).save();
-            //Else if there is a data
-            } else { 
-                //Button
-                const button = new ButtonBuilder()
-                    .setCustomId("hostrolebtn")
-                    .setLabel("Remove role?")
-                    .setStyle(ButtonStyle.Primary);
-                const row = new ActionRowBuilder().addComponents(button)
+        return await new eventRoleSchema({
+          guildId: guild.id,
+          roleId: role.id,
+        }).save();
+      } else {
+        const button = new ButtonBuilder()
+          .setCustomId("hostrolebtn")
+          .setLabel("Remove role?")
+          .setStyle(ButtonStyle.Primary);
+        const row = new ActionRowBuilder().addComponents(button);
 
-                //Embed
-                const embed = new EmbedBuilder()
-                    .setTitle("A is already chosen!")
-                    .setDescription("A role is already chosen as the role required to host in this server!")
-                    .setColor("Red")
-                interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-            }
-        } catch (err) {
-            return;
-        }
+        const embed = new EmbedBuilder()
+          .setTitle("A role is already chosen!")
+          .setDescription(
+            `<@&${data.roleId}> (${data.roleId}) is already chosen as the role required to host in this server!`
+          )
+          .setColor("Red");
+        interaction.reply({
+          embeds: [embed],
+          components: [row.toJSON()],
+          flags: "Ephemeral",
+        });
+      }
+    } catch (err) {
+      return;
     }
-}
+  },
+});

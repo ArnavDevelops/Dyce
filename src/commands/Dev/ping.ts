@@ -1,31 +1,24 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
+import { EmbedBuilder } from "discord.js";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("ping")
-    .setDescription("Get the bot's ping")
-    .setDMPermission(false),
-  async execute(interaction: any, client: any) {
-    //Misc
-    let circles = {
-      good: "<:WiFi_Online:1231374139621900362>",
-      okay: "<:WiFi_PerformanceIssues:1231374366164647986>",
-      bad: "<:WiFi_Offline:1231374258794397788>",
+export default new Command({
+  name: "ping",
+  description: "(does not) replies with pong",
+  run: async ({ interaction }) => {
+    let emojis = {
+      good: "🟢🛜",
+      okay: "🟡🛜",
+      bad: "🔴🛜",
     };
-
-    await interaction.deferReply();
 
     const pinging = await interaction.editReply({ content: "Pinging..." });
     const ws = interaction.client.ws.ping;
     const msgEdit = Date.now() - interaction.createdTimestamp;
 
-    //Emoji
     const wsEmoji =
-      ws <= 100 ? circles.good : ws <= 200 ? circles.okay : circles.bad;
-    const msgEmoji = msgEdit <= 200 ? circles.good : circles.bad;
+      ws <= 100 ? emojis.good : ws <= 200 ? emojis.okay : emojis.bad;
+    const msgEmoji = msgEdit <= 200 ? emojis.good : emojis.bad;
 
-    //Embed
     const pingEmbed = new EmbedBuilder()
       .setThumbnail(interaction.client.user.displayAvatarURL({ size: 256 }))
       .setColor("White")
@@ -39,9 +32,9 @@ module.exports = {
         {
           name: "Client Latency",
           value: `${msgEmoji} \`${msgEdit}ms\``,
-        },
+        }
       );
 
     return await pinging.edit({ embeds: [pingEmbed], content: "\u200b" });
   },
-};
+});

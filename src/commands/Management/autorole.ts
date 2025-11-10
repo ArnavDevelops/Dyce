@@ -1,63 +1,76 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, PermissionFlagsBits } from "discord.js";
+import {
+  EmbedBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ActionRowBuilder,
+  InteractionContextType,
+  ApplicationCommandOptionType,
+} from "discord.js";
 import joinRoleSchema from "../../schemas/joinRoleSchema";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-    data: new SlashCommandBuilder()
-        .setName("autorole")
-        .setDescription("Autoroles.")
-        .setDMPermission(false)
-        .addSubcommand((c) =>
-            c
-                .setName("join")
-                .setDescription("What should be the autorole upon joining?")
-                .addRoleOption((r) =>
-                    r
-                        .setName("role")
-                        .setDescription("Select the role.")
-                        .setRequired(true)
-                )
-        )
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    async execute(interaction: any, client: any) {
-        const { options, guild, member } = interaction;
+export default new Command({
+  name: "autorole",
+  description: "Automatically gives a role to users",
+  contexts: [InteractionContextType.Guild],
+  defaultMemberPermissions: ["Administrator"],
+  options: [
+    {
+      name: "join",
+      description: "The join role",
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: "role",
+          description: "select the Role",
+          type: ApplicationCommandOptionType.Role,
+          required: true,
+        },
+      ],
+    },
+  ],
+  run: async ({ interaction, args }) => {
+    const { guild } = interaction;
 
-        //Join Subcommand
-        if (options.getSubcommand() === "join") {
-            const getRole = options.getRole("role")
-            const role = guild.roles.cache.get(getRole.id);
+    if (args.getSubcommand() === "join") {
+      const getRole = args.getRole("role");
+      const role = guild.roles.cache.get(getRole.id);
 
-            //Data
-            const data = await joinRoleSchema.findOne({ guildId: guild.id });
-            //If there is no data
-            if (data) {
-                const button = new ButtonBuilder()
-                    .setCustomId("joinrolebtn")
-                    .setLabel("Remove role?")
-                    .setStyle(ButtonStyle.Primary);
-                const row = new ActionRowBuilder().addComponents(button)
+      const data = await joinRoleSchema.findOne({ guildId: guild.id });
 
-                const embed = new EmbedBuilder()
-                    .setTitle("A role is already chosen!")
-                    .setDescription("A role is already chosen as the autorole for join!")
-                    .setColor("Red")
-                return await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-            //Else if there is data
-            } else {
-                const embed = new EmbedBuilder()
-                    .setColor("Green")
-                    .setDescription(`***:white_check_mark: Successully made ${role.name} as the automatic join role.***`)
-                await interaction.reply({ embeds: [embed], ephemeral: true });
+      if (data) {
+        const button = new ButtonBuilder()
+          .setCustomId("joinrolebtn")
+          .setLabel("Remove role?")
+          .setStyle(ButtonStyle.Primary);
+        const row = new ActionRowBuilder().addComponents(button);
 
-                try {
-                    await new joinRoleSchema({
-                        guildId: guild.id,
-                        roleId: role.id
-                    }).save();
-                } catch(err) {
-                    return;
-                }
-            }
+        const embed = new EmbedBuilder()
+          .setTitle("A role is already chosen!")
+          .setDescription("A role is already chosen as the autorole for join!")
+          .setColor("Red");
+        return await interaction.reply({
+          embeds: [embed],
+          components: [row.toJSON()],
+          flags: "Ephemeral",
+        });
+      } else {
+        const embed = new EmbedBuilder()
+          .setColor("Green")
+          .setDescription(
+            `***:white_check_mark: Successully made ${role.name} as the automatic join role.***`
+          );
+        await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
+
+        try {
+          await new joinRoleSchema({
+            guildId: guild.id,
+            roleId: role.id,
+          }).save();
+        } catch (err) {
+          return;
         }
+      }
     }
-}
+  },
+});

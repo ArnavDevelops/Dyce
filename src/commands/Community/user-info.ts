@@ -1,18 +1,22 @@
 //Imports
-import { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } from "discord.js";
+import { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ApplicationCommandOptionType, InteractionContextType } from "discord.js";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("userinfo")
-    .setDescription("Check the information about a specific user.")
-    .setDMPermission(false)
-    .addUserOption((user) =>
-      user.setName("user").setDescription("Select the user.")
-    ),
-  async execute(interaction: any, client: any) {
-    //Variables
-    const { options, guild } = interaction;
-    const user = await client.users.fetch(options.getUser("user") || interaction.user, { force: true })
+export default new Command({
+  name: "userinfo",
+  description: "Information about the user",
+  contexts: [InteractionContextType.Guild],
+  options: [
+    {
+      name: "user",
+      description: "Select the user or leave it to see your own",
+      type: ApplicationCommandOptionType.User,
+    },
+  ],
+  run: async ({ interaction, client, args }) => {
+    
+    const { guild } = interaction;
+    const user = await client.users.fetch(args.getUser("user") || interaction.user, { force: true })
     const member = await guild.members.fetch(user);
     const username = user.username;
     const avatar = user.avatarURL();
@@ -35,7 +39,7 @@ module.exports = {
 
     //Modifying status strings
     let status =
-      member.presence?.status || user.presence?.status || "<:invisible_offline_blank:1234893868562907259> Offline/Invisible"
+      member.presence?.status || "<:invisible_offline_blank:1234893868562907259> Offline/Invisible"
     if (status === "dnd") {
       status = "<:dnd_blank:1234902957129072741> Do not Disturb";
     }
@@ -54,14 +58,14 @@ module.exports = {
       .addFields({ name: "Status", value: `${status}` })
       .addFields({
         name: "Joined Server on",
-        value: `<t:${Math.floor(joined / 1000)}:F>`,
+        value: `<t:${Math.floor(joined.getTime() / 1000)}:F>`,
       })
       .addFields({
         name: "Joined Discord on",
-        value: `<t:${Math.floor(created / 1000)}:F>`,
+        value: `<t:${Math.floor(created.getTime() / 1000)}:F>`,
       })
       .setThumbnail(avatar)
       .setColor(user.accentColor);
-    return await interaction.reply({ embeds: [embed], components: [row] });
+    return await interaction.reply({ embeds: [embed], components: [row.toJSON()] });
   },
-};
+});

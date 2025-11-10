@@ -1,45 +1,54 @@
-import { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, PermissionFlagsBits } from "discord.js";
+import {
+  EmbedBuilder,
+  PermissionsBitField,
+  InteractionContextType,
+  ApplicationCommandOptionType,
+} from "discord.js";
 import modNotesSchema from "../../schemas/modNotesSchema";
-import warnModel from "../../schemas/warnModel"
+import warnModel from "../../schemas/warnModel";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("warn")
-    .setDescription("Warn a specific user.")
-    .setDMPermission(false)
-    .addUserOption((user) =>
-      user.setName("user").setDescription("Select the user.").setRequired(true)
-    )
-    .addStringOption((reason) =>
-      reason
-        .setName("reason")
-        .setDescription("Provide a reason.")
-        .setRequired(true)
-    )
-    .addStringOption((reason) =>
-      reason
-        .setName("note")
-        .setDescription("Any notes for this action?.")
-        .setRequired(false)
-    )
-    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
-  async execute(interaction: any, client: any) {
-    const { options, member, guild } = interaction;
+export default new Command({
+  name: "warn",
+  description: "Warns a user",
+  defaultMemberPermissions: ["ModerateMembers"],
+  contexts: [InteractionContextType.Guild],
+  options: [
+    {
+      name: "user",
+      description: "Select the user or input a userID",
+      type: ApplicationCommandOptionType.User,
+      required: true,
+    },
+    {
+      name: "reason",
+      description: "The reason",
+      type: ApplicationCommandOptionType.String,
+      required: true,
+    },
+    {
+      name: "note",
+      description: "Anything to note about this particular action?",
+      type: ApplicationCommandOptionType.String,
+      required: false,
+    },
+  ],
+  run: async ({ interaction, args }) => {
+    const { member, guild } = interaction;
 
-    //Variables
-    const e = options.getUser("user");
+    const e = args.getUser("user");
     const user = await guild.members.fetch(e).catch(async (err: Error) => {
       const failEmbed = new EmbedBuilder()
         .setColor("Red")
         .setDescription(
           "***:warning: There was an error searching for the user, please make sure that the user is in the server.***"
         );
-      await interaction.reply({ embeds: [failEmbed], ephemeral: true });
+      await interaction.reply({ embeds: [failEmbed], flags: ["Ephemeral"] });
       return null;
     });
     if (!user) return;
-    const reason = options.getString("reason");
-    const note = options.getString('note');
+    const reason = args.getString("reason");
+    const note = args.getString("note");
 
     if (user.id == member.id) {
       const cannotWarnYourself = new EmbedBuilder()
@@ -47,7 +56,7 @@ module.exports = {
         .setDescription("***:x: You cannot warn yourself***");
       return await interaction.reply({
         embeds: [cannotWarnYourself],
-        ephemeral: true,
+        flags: ["Ephemeral"],
       });
     }
 
@@ -55,7 +64,7 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setDescription("***:x: You cannot warn bots!***");
-      return interaction.reply({ embeds: [embed], ephemeral: true });
+      return interaction.reply({ embeds: [embed], flags: ["Ephemeral"] });
     }
 
     if (user.permissions.has(PermissionsBitField.Flags.KickMembers)) {
@@ -64,7 +73,7 @@ module.exports = {
         .setDescription("***:x: I can't warn myself nor a Moderator.***");
       return await interaction.reply({
         embeds: [cannotWarnMyself],
-        ephemeral: true,
+        flags: ["Ephemeral"],
       });
     }
 
@@ -99,11 +108,11 @@ module.exports = {
           moderatorId: interaction.user.id,
           command: "/warn",
           date: Date.now(),
-          note: `Moderated: ${user.user.username} | **${note}**`
-        }).save()
+          note: `Moderated: ${user.user.username} | **${note}**`,
+        }).save();
       }
     } catch (err) {
       return;
     }
   },
-};
+});

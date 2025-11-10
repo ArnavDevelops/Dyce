@@ -1,56 +1,66 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ButtonStyle, ButtonBuilder, ActionRowBuilder } from "discord.js";
-import warnModel from "../../schemas/warnModel"
+import {
+  EmbedBuilder,
+  PermissionsBitField,
+  ButtonStyle,
+  ButtonBuilder,
+  ActionRowBuilder,
+  ApplicationCommandOptionType,
+  InteractionContextType,
+} from "discord.js";
+import warnModel from "../../schemas/warnModel";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("warnings")
-    .setDescription("Check your warnings or another user's warnings.")
-    .setDMPermission(false)
-    .addUserOption((user) =>
-      user.setName("user").setDescription("Select the user.")
-    ),
-  async execute(interaction: any, client: any) {
-    const { options, guild } = interaction;
-    //Variables
-    const warn = options.getUser("user") || interaction.user;
+export default new Command({
+  name: "warnings",
+  description: "Checks if the user have any warnings or not",
+  contexts: [InteractionContextType.Guild],
+  options: [
+    {
+      name: "user",
+      description: "Select the user or leave it to see your own",
+      type: ApplicationCommandOptionType.User,
+    },
+  ],
+  run: async ({ interaction, args }) => {
+    const { guild } = interaction;
+
+    const warn = args.getUser("user") || interaction.user;
     const userInGuild = guild.members.cache.get(warn.id);
     let warnsBoard = [""];
     const page = 1;
     const warnsPerPage = 5;
     const warnsToSkip = (page - 1) * warnsPerPage;
 
-    //Data
-    const data = await warnModel.find({ guildId: guild.id, userId: warn.id }).limit(warnsPerPage).skip(warnsToSkip).exec();
+  
+    const data = await warnModel
+      .find({ guildId: guild.id, userId: warn.id })
+      .limit(warnsPerPage)
+      .skip(warnsToSkip)
+      .exec();
 
     if (userInGuild.user.bot) {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setDescription("***:x: Bots cannot have any warnings.***");
-      return await interaction.reply({ embeds: [embed], ephemeral: true });
+      return await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
     }
 
     if (userInGuild.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
-      const embed1 = new EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor("Yellow")
         .setDescription(
           "***:warning: moderators and above cannot have any warnings.***"
         );
-      return await interaction.reply({ embeds: [embed1], ephemeral: true });
+      return await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
     }
 
     const noWarnings = new EmbedBuilder()
-      .setDescription(
-        `***:warning: ${warn.username} has no warnings.***`
-      )
+      .setDescription(`***:warning: ${warn.username} has no warnings.***`)
       .setColor("Red");
-    if (data.length < 1)
-      return interaction.reply({ embeds: [noWarnings] })
-
+    if (data.length < 1) return interaction.reply({ embeds: [noWarnings] });
 
     let warns = warnsToSkip + 1;
 
-    //Buttons
     const previousButton = new ButtonBuilder()
       .setCustomId(`warnsBoard:previous:${warn.id}:${page}`)
       .setLabel("⬅️")
@@ -66,13 +76,17 @@ module.exports = {
       nextButton
     );
 
-    if (interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
+    if (
+      interaction.member.permissions.has(
+        PermissionsBitField.Flags.ModerateMembers
+      )
+    ) {
       for (const warn of data) {
-        warnsBoard += [
+        warnsBoard += ([
           `**warn ID:** ${warn._id}`,
-          `**Date:** <t:${Math.round(warn.timestamp as any / 1000)}>`,
+          `**Date:** <t:${Math.round((warn.timestamp as any) / 1000)}>`,
           `**Reason:** ${warn.reason}`,
-        ].join("\n") + "\n\n" as any;
+        ].join("\n") + "\n\n") as any;
         warns++;
       }
 
@@ -80,13 +94,17 @@ module.exports = {
         .setTitle(`***${warn.username}'s warnings***`)
         .setDescription(warnsBoard as any)
         .setColor("Yellow");
-      await interaction.reply({ embeds: [embed], components: [row] });
+      await interaction.reply({
+        embeds: [embed],
+        components: [row.toJSON()],
+        flags: "Ephemeral",
+      });
     } else {
       for (const warn of data) {
-        warnsBoard += [
-          `**Date:** <t:${Math.round(warn.timestamp as any/ 1000)}>`,
+        warnsBoard += ([
+          `**Date:** <t:${Math.round((warn.timestamp as any) / 1000)}>`,
           `**Reason:** ${warn.reason}`,
-        ].join("\n") + "\n\n" as any;
+        ].join("\n") + "\n\n") as any;
         warns++;
       }
 
@@ -94,8 +112,14 @@ module.exports = {
         .setTitle(`***${warn.username}'s warnings***`)
         .setDescription(warnsBoard as any)
         .setColor("Yellow")
-        .setFooter({ text: "WarnID is hidden as the Command user is not a moderator", iconURL: `${warn.avatarURL() || warn.user.avatarURL()}` })
-      return await interaction.reply({ embeds: [embed], components: [row] });
+        .setFooter({
+          text: "WarnID is hidden as the interaction user is not a Moderator.",
+          iconURL: `${warn.avatarURL()}`,
+        });
+      return await interaction.reply({
+        embeds: [embed],
+        components: [row.toJSON()],
+      });
     }
   },
-};
+});

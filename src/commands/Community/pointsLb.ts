@@ -1,18 +1,18 @@
 import {
-  SlashCommandBuilder,
   EmbedBuilder,
   ButtonBuilder,
   ButtonStyle,
   ActionRowBuilder,
+  InteractionContextType,
 } from "discord.js";
 import pointsSchema from "../../schemas/pointsSchema";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("points-leaderboard")
-    .setDescription("Check the list of users with points.")
-    .setDMPermission(false),
-  async execute(interaction: any, client: any) {
+export default new Command({
+  name: "points-leaderboard",
+  description: "Who has the most or least points?",
+  contexts: [InteractionContextType.Guild],
+  run: async ({ interaction }) => {
     const { guild } = interaction;
 
     const page = 1;
@@ -32,7 +32,7 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setDescription("***:warning: No one in this server has points.***");
-      return await interaction.reply({ embeds: [embed], ephemeral: true });
+      return await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
     } else {
       for (const user of users) {
         if (user.points === 0) continue;
@@ -69,9 +69,9 @@ module.exports = {
 
       await interaction.reply({
         embeds: [embed],
-        components: [actionRow],
-        ephemeral: true,
+        components: [actionRow.toJSON()],
+        flags: "Ephemeral",
       });
     }
   },
-};
+});

@@ -1,66 +1,86 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from "discord.js";
+import {
+  EmbedBuilder,
+  ApplicationCommandOptionType,
+  InteractionContextType,
+  TextChannel,
+  NewsChannel,
+} from "discord.js";
 
-module.exports = {
-    data: new SlashCommandBuilder()
-        .setName("slowmode")
-        .setDescription("Sets a slowmode for a channel.")
-        .setDMPermission(false)
-        .addChannelOption((c) =>
-            c
-                .setName("channel")
-                .setDescription("Select the channel.")
-                .setRequired(true)
-        )
-        .addNumberOption((n) =>
-            n
-                .setName("duration")
-                .setDescription("Insert how long the slowmode should be in seconds")
-                .setRequired(true)
-                .setMaxValue(21600)
-        )
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    async execute(interaction: any, client: any) {
-        const { options, guild } = interaction;
+import { Command } from "../../structures/Command";
 
-        //Variables
-        let content = ``;
-        let durationContent = ""
-        const channel = guild.channels.cache.get(options.getChannel("channel").id)
-        const duration = options.getNumber("duration")
+export default new Command({
+  name: "slowmode",
+  description: "Sets a slowmode",
+  options: [
+    {
+      name: "channel",
+      description: "Select the channel",
+      type: ApplicationCommandOptionType.Channel,
+      required: true,
+    },
+    {
+      name: "duration",
+      description: "Set the duration (in seconds)",
+      type: ApplicationCommandOptionType.Number,
+      max_value: 21600,
+      required: true,
+    },
+  ],
+  defaultMemberPermissions: ["Administrator"],
+  contexts: [InteractionContextType.Guild],
+  run: async ({ interaction, args }) => {
+    const { guild } = interaction;
 
-        //Converting seconds into hours or minutes
-        if (duration >= 3600) {
-            durationContent += `${Math.floor(duration / 3600)} hour(s)`
-        } else if (duration >= 60) {
-            durationContent += `${Math.floor(duration % 3600 / 60)} minute(s)`
-        } else if (duration <= 60) {
-            durationContent += `${duration} second(s)`
-        }
-
-        //Checking weather the channel's slowmode is equal to the duration
-        if (channel.rateLimitPerUser == duration) {
-            const embed = new EmbedBuilder()
-                .setColor("Red")
-                .setDescription(`***:warning: The channel (#${channel.name}) already has ${durationContent} of slowmode. Choose a different number.***`)
-            return await interaction.reply({ embeds: [embed], ephemeral: true });
-        } else {
-            if (duration == 0) {
-                content += `***:white_check_mark: The channel (#${channel.name}) now has no duration at all.***`
-            } else if (duration >= 0) {
-                content += `***:white_check_mark: The channel (#${channel.name}) now has ${durationContent} of slowmode***`
-            }
-
-            try {
-                channel.setRateLimitPerUser(duration)
-
-                const embed = new EmbedBuilder()
-                    .setColor("Green")
-                    .setDescription(content)
-                return await interaction.reply({ embeds: [embed] })
-            } catch (err) {
-                return;
-            }
-        }
+    let content = ``;
+    let durationContent = "";
+    const channel = guild.channels.cache.get(args.getChannel("channel").id);
+    if (
+      !channel ||
+      !(channel instanceof TextChannel || channel instanceof NewsChannel)
+    ) {
+      const embed = new EmbedBuilder()
+        .setColor("Red")
+        .setDescription("***:warning: Please select a valid text channel***");
+      return await interaction.reply({
+        embeds: [embed],
+        flags: "Ephemeral",
+      });
     }
-}
+
+    const duration = args.getNumber("duration");
+
+    if (duration >= 3600) {
+      durationContent += `${Math.floor(duration / 3600)} hour(s)`;
+    } else if (duration >= 60) {
+      durationContent += `${Math.floor((duration % 3600) / 60)} minute(s)`;
+    } else if (duration <= 60) {
+      durationContent += `${duration} second(s)`;
+    }
+
+    if (channel.rateLimitPerUser == duration) {
+      const embed = new EmbedBuilder()
+        .setColor("Red")
+        .setDescription(
+          `***:warning: The channel (#${channel.name}) already has ${durationContent} of slowmode. Choose a different number.***`
+        );
+      return await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
+    } else {
+      if (duration == 0) {
+        content += `***:white_check_mark: The channel (#${channel.name}) now has no duration at all.***`;
+      } else if (duration >= 0) {
+        content += `***:white_check_mark: The channel (#${channel.name}) now has ${durationContent} of slowmode***`;
+      }
+
+      try {
+        channel.setRateLimitPerUser(duration);
+
+        const embed = new EmbedBuilder()
+          .setColor("Green")
+          .setDescription(content);
+        return await interaction.reply({ embeds: [embed] });
+      } catch (err) {
+        return;
+      }
+    }
+  },
+});

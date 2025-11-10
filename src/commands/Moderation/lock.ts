@@ -1,46 +1,66 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from "discord.js";
+import {
+  EmbedBuilder,
+  InteractionContextType,
+  ApplicationCommandOptionType,
+  TextChannel,
+  NewsChannel,
+} from "discord.js";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("lock")
-    .setDescription(
-      "Locks a channel."
-    )
-    .setDMPermission(false)
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("channel")
-        .setDescription("Lock a channel")
-        .addChannelOption((channel) =>
-          channel
-            .setName("channel")
-            .setDescription("Select the channel you wanna lock.")
-            .setRequired(true)
-        )
-        .addStringOption((reason) =>
-          reason.setName("reason").setDescription("Give a reason.")
-        )
-    )
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-  async execute(interaction: any, client: any) {
-    const { member, options, guild } = interaction;
+export default new Command({
+  name: "lock",
+  description: "Locks a channel",
+  defaultMemberPermissions: ["Administrator"],
+  contexts: [InteractionContextType.Guild],
+  options: [
+    {
+      name: "channel",
+      description: "Locks a channel",
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: "channel",
+          description: "Select the channel",
+          type: ApplicationCommandOptionType.Channel,
+          required: true,
+        },
+        {
+          name: "reason",
+          description: "The reason",
+          type: ApplicationCommandOptionType.String,
+          required: false,
+        },
+      ],
+    },
+  ],
+  run: async ({ interaction, args }) => {
+    const { guild } = interaction;
 
-    //Channel Command
-    if (options.getSubcommand() === "channel") {
-      //Variables
+    if (args.getSubcommand() === "channel") {
       const role = guild.roles.cache.find((r: any) => r.name === "@everyone");
-      let channel = options.getChannel("channel");
-      const reason = options.getString("reason") || "No reason given";
+      let channel = args.getChannel("channel");
+      if (
+        !channel ||
+        !(channel instanceof TextChannel || channel instanceof NewsChannel)
+      ) {
+        const embed = new EmbedBuilder()
+          .setColor("Red")
+          .setDescription("***:warning: Please select a valid text channel***");
+        return await interaction.reply({
+          embeds: [embed],
+          flags: "Ephemeral",
+        });
+      }
+      const reason = args.getString("reason") || "No reason given";
       if (!channel) {
-         return channel = interaction.channel 
-      };
+        return (channel = interaction.channel);
+      }
 
       if (channel.permissionsFor(guild.id).has("SendMessages") === false) {
         const alreadyLocked = new EmbedBuilder()
           .setDescription(`***:warning: ${channel} is already locked.***`)
           .setColor("Red");
-        return interaction.reply({ embeds: [alreadyLocked], ephemeral: true });
+        return interaction.reply({ embeds: [alreadyLocked], flags: ["Ephemeral"] });
       }
 
       await channel.permissionOverwrites.edit(guild.id, {
@@ -49,7 +69,6 @@ module.exports = {
 
       await channel.permissionOverwrites.edit(role, { SendMessages: false });
 
-      //Embed
       const embed = new EmbedBuilder()
         .setDescription(`***:x: ${channel} is now Locked***`)
         .setColor("Red")
@@ -57,4 +76,4 @@ module.exports = {
       return await interaction.reply({ embeds: [embed] });
     }
   },
-};
+});

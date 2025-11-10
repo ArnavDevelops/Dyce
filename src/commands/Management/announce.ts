@@ -1,36 +1,47 @@
-//Imports
-import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from "discord.js";
-import startTyping from "../../helpers/startTyping";
+import { EmbedBuilder, ApplicationCommandOptionType, InteractionContextType, TextChannel, NewsChannel } from "discord.js";
+import startTyping from "../../typings/startTyping";
+import { Command } from "../../structures/Command";
 
-module.exports = {
-    data: new SlashCommandBuilder()
-        .setName("announce")
-        .setDescription("Announces a specific message in a specific channel.")
-        .setDMPermission(false)
-        .addChannelOption((c) =>
-            c
-                .setName("channel")
-                .setDescription("Select the channel.")
-                .setRequired(true)
-        )
-        .addStringOption((m) =>
-            m
-                .setName("message")
-                .setDescription("What should be the message?")
-                .setRequired(true)
-        )
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    async execute(interaction: any, client: any) {
-        const { options } = interaction;
+export default new Command({
+  name: "announce",
+  description: "Send a message using the bot or announce something",
+  options: [
+    {
+      name: "channel",
+      description: "The channel",
+      type: ApplicationCommandOptionType.Channel,
+      required: true
+    },
+    {
+      name: "message",
+      description: "What should be the message?",
+      type: ApplicationCommandOptionType.String,
+      required: true
+    },
+  ],
+  defaultMemberPermissions: ["Administrator"],
+  contexts: [InteractionContextType.Guild],
+  run: async ({ interaction, args }) => {
 
-        //Variables
-        const channel = options.getChannel("channel")
-        const message = options.getString("message")
+        const channel = args.getChannel("channel")
+        if(!channel || !(channel instanceof TextChannel || channel instanceof NewsChannel)) {
+          const embed = new EmbedBuilder()
+            .setColor("Red")
+            .setDescription(
+              "***:warning: Please select a valid text channel***"
+            );
+          return await interaction.reply({
+            embeds: [embed],
+            flags: "Ephemeral",
+          });
+        }
+
+        const message = args.getString("message")
 
         const embed = new EmbedBuilder()
             .setColor("Green")
             .setDescription(`***:white_check_mark: Successfully sent the message in #${channel.name}.***`)
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
 
         try {
             startTyping(channel)
@@ -41,4 +52,4 @@ module.exports = {
             return;
         }
     },
-};
+});
