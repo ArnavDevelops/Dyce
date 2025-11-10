@@ -44,7 +44,7 @@ export default new Command({
       status = "<:IDLE:1437467953091313908> Idle";
     }
     if (status === "online") {
-      status = "<:online_status:1437468175296888942>> Online";
+      status = "<:online_status:1437468175296888942> Online";
     }
 
     const embed = new EmbedBuilder()

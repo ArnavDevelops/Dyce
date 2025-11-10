@@ -53,7 +53,7 @@ export class ExtendedClient extends Client {
     console.log("✅ Registering commands...");
     this.application?.commands.cache.clear();
     await this.application?.commands.fetch();
-    await rest.put(Routes.applicationCommands(process.env.clientId), { body: [] });
+    await rest.put(Routes.applicationCommands(process.env.clientId), { body: slashCommands });
 
     console.log("✨ Commands Registered successfully!");
     } catch (err) {
