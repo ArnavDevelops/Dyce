@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const eventSchema = new Schema({
+const schema = new Schema({
   guildId: String,
   msgId: String,
   threadId: String,
@@ -14,5 +14,5 @@ const eventSchema = new Schema({
   timeItStarts: Date, 
 });
 
-const m = model("event", eventSchema);
-export default m
+const eventSchema = model("event", schema);
+export default eventSchema

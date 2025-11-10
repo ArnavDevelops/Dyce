@@ -1,9 +1,9 @@
 import { Schema, model } from "mongoose";
 
-const softbanRoleSchema = new Schema({
+const schema = new Schema({
   guildId: String,
   roleId: String,
 });
 
-const m = model("softbanRole", softbanRoleSchema);
-export default m
+const softbanRoleSchema = model("softbanRole", schema);
+export default softbanRoleSchema

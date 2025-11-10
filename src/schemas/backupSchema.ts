@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const backupSchema = new Schema({
+const schema = new Schema({
   guildId: String,
   msgId: String,
   threadId: String,
@@ -9,5 +9,5 @@ const backupSchema = new Schema({
   requester: String,
 });
 
-const m = model("backup", backupSchema);
-export default m
+const backupSchema = model("backup", schema);
+export default backupSchema

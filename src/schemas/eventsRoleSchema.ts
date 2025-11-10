@@ -1,9 +1,9 @@
 import { Schema, model } from "mongoose";
 
-const eventRoleSchema = new Schema({
+const schema = new Schema({
   guildId: String,
   roleId: String,
 });
 
-const m = model("eventRole", eventRoleSchema);
-export default m
+const eventRoleSchema = model("eventRole", schema);
+export default eventRoleSchema

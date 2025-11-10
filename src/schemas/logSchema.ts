@@ -1,9 +1,9 @@
 import { Schema, model } from "mongoose";
 
-const guildSchema = new Schema({
+const schema = new Schema({
   Guild: String,
   Channel: String,
 });
 
-const m = model("Guild", guildSchema);
-export default m
+const logSchema = model("Logging", schema);
+export default logSchema

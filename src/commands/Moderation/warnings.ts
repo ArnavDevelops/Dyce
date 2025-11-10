@@ -7,7 +7,7 @@ import {
   ApplicationCommandOptionType,
   InteractionContextType,
 } from "discord.js";
-import warnModel from "../../schemas/warnModel";
+import warnModel from "../../schemas/warnSchema";
 import { Command } from "../../structures/Command";
 
 export default new Command({

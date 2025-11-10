@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const warnModels = new Schema({
+const schema = new Schema({
   guildId: String,
   userId: String,
   moderatorId: String,
@@ -8,5 +8,5 @@ const warnModels = new Schema({
   timestamp: Date,
 });
 
-const m = model("warning", warnModels);
-export default m
+const warnSchema = model("warning", schema);
+export default warnSchema

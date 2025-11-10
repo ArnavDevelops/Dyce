@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const modNotesSchema = new Schema({
+const schema = new Schema({
   guildId: String,
   moderatorId: String,
   command: String,
@@ -8,5 +8,5 @@ const modNotesSchema = new Schema({
   note: String,
 });
 
-const m = model("modNotes", modNotesSchema);
-export default m
+const modNotesSchema = model("modNotes", schema);
+export default modNotesSchema

@@ -7,7 +7,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
 } from "discord.js";
-import ModSchema from "../../schemas/warnModel";
+import ModSchema from "../../schemas/warnSchema";
 
 export default new Button("warnsBoard:", async ({ interaction }) => {
   const { customId, guild, member } = interaction;

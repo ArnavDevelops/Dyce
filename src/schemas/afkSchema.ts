@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const afkSchema = new Schema({
+const schema = new Schema({
   guildId: String,
   userId: String,
   reason: String,
@@ -8,6 +8,6 @@ const afkSchema = new Schema({
   nickname: String,
 });
 
-const m = model("afkUser", afkSchema);
-export default m
+const afkSchema = model("afkUser", schema);
+export default afkSchema
 

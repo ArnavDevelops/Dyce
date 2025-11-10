@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const reactionRolesSchema = new Schema({
+const schema = new Schema({
     guildId: String,
     channelId: String,
     msgId: String,
@@ -10,5 +10,5 @@ const reactionRolesSchema = new Schema({
     role4: String,
 });
 
-const m = model("reactionrole", reactionRolesSchema);
-export default m
+const ReactionRolesSchema = model("reactionrole", schema);
+export default ReactionRolesSchema

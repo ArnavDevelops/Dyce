@@ -1,10 +1,10 @@
 import { Schema, model } from "mongoose";
 
-const tempBanSchema = new Schema({
+const schema = new Schema({
   guildId: String,
   userId: String,
   time: String,
 });
 
-const m = model("tempBan", tempBanSchema);
-export default m
+const tempBanSchema = model("tempBan", schema);
+export default tempBanSchema

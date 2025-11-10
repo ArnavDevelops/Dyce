@@ -1,10 +1,10 @@
 import { Schema, model } from "mongoose";
 
-const autoPublishSchema = new Schema({
+const schema = new Schema({
   guildId: String,
   channelId: String,
 });
 
-const m = model("autopublish", autoPublishSchema);
-export default m
+const autoPublishSchema = model("autopublish", schema);
+export default autoPublishSchema
 
