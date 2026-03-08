@@ -16,7 +16,7 @@ export default new Button("notesBoard:", async ({ interaction }) => {
   if (!member || !("roles" in member)) return;
 
   let page: any;
-  let moderator;
+  let moderator: any;
   if (customId.startsWith("notesBoard:next:")) {
     page = parseInt(customId.split(`:`)[3]) + 1;
     moderator = guild.members.cache.get(customId.split(`:`)[2]);
@@ -40,12 +40,14 @@ export default new Button("notesBoard:", async ({ interaction }) => {
   const notesPerPage = 5;
   const notesToSkip = (page - 1) * notesPerPage;
   const data = await modNotesSchema
-    .find({
-      guildId: interaction.guild.id,
-      moderatorId: moderator.id || moderator.user.id,
+      .findAll({
+        where: {
+          guildId: interaction.guild.id,
+          moderatorId: moderator.id || moderator.user.id,
+        },
+        limit: notesPerPage,
+        offset: notesToSkip
     })
-    .limit(notesPerPage)
-    .skip(notesToSkip);
 
   let notesBoard = ``;
   let notes = notesToSkip + 1;

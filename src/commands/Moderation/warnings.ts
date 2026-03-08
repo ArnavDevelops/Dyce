@@ -31,12 +31,15 @@ export default new Command({
     const warnsPerPage = 5;
     const warnsToSkip = (page - 1) * warnsPerPage;
 
-  
-    const data = await warnModel
-      .find({ guildId: guild.id, userId: warn.id })
-      .limit(warnsPerPage)
-      .skip(warnsToSkip)
-      .exec();
+
+    const data = await warnModel.findAll({
+      where: {
+        guildId: guild.id,
+        userId: warn.id,
+      },
+      limit: warnsPerPage,
+      offset: warnsToSkip,
+    });
 
     if (userInGuild.user.bot) {
       const embed = new EmbedBuilder()
@@ -83,7 +86,7 @@ export default new Command({
     ) {
       for (const warn of data) {
         warnsBoard += ([
-          `**warn ID:** ${warn._id}`,
+          `**warn ID:** ${warn.id}`,
           `**Date:** <t:${Math.round((warn.timestamp as any) / 1000)}>`,
           `**Reason:** ${warn.reason}`,
         ].join("\n") + "\n\n") as any;

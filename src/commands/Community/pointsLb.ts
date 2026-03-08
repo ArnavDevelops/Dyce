@@ -7,6 +7,7 @@ import {
 } from "discord.js";
 import pointsSchema from "../../schemas/pointsSchema";
 import { Command } from "../../structures/Command";
+import { Op } from "sequelize";
 
 export default new Command({
   name: "points-leaderboard",
@@ -19,11 +20,17 @@ export default new Command({
     const usersPerPage = 10;
     const usersToSkip = (page - 1) * usersPerPage;
 
-    const users = await pointsSchema
-      .find({ points: { $gt: 0 }, guildId: guild.id })
-      .sort({ points: -1 })
-      .limit(usersPerPage)
-      .skip(usersToSkip);
+    const users = await pointsSchema.findAll({
+      where: {
+        guildId: guild.id,
+        points: {
+          [Op.gt]: 0
+        }
+      },
+      order: [["points", "DESC"]],
+      limit: usersPerPage,
+      offset: usersToSkip
+    });
 
     let leaderboard = ``;
     let rank = usersToSkip + 1;

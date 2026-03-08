@@ -5,7 +5,7 @@ import { Event } from "../../structures/Event";
 
 export default new Event("guildUpdate", async (oldGuild, newGuild) => {
     try {
-      const logData = await logSchema.findOne({ Guild: newGuild.id });
+      const logData = await logSchema.findOne({ where: { Guild: newGuild.id } });
       if (!logData) return;
 
       const logChannel = newGuild.channels.cache.get(logData.Channel) as TextChannel;

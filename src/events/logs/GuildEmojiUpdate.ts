@@ -4,7 +4,7 @@ import { Event } from "../../structures/Event";
 
 export default new Event("emojiUpdate", async (oldEmoji, newEmoji) => {
   try {
-    const logData = await logSchema.findOne({ Guild: newEmoji.guild.id });
+    const logData = await logSchema.findOne({ where: { Guild: newEmoji.guild.id } });
     if (!logData) return;
 
     const logChannel = newEmoji.guild.channels.cache.get(

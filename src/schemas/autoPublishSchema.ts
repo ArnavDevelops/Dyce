@@ -1,10 +1,35 @@
-import { Schema, model } from "mongoose";
+import { DataTypes, Model } from "sequelize";
+import sequelize from "../structures/database";
 
-const schema = new Schema({
-  guildId: String,
-  channelId: String,
-});
+interface AutoPublishAttributes {
+  guildId: string;
+  channelId: string;
+}
 
-const autoPublishSchema = model("autopublish", schema);
-export default autoPublishSchema
+class AutoPublish
+    extends Model<AutoPublishAttributes, AutoPublishAttributes>
+    implements AutoPublishAttributes
+{
+  declare guildId: string;
+  declare channelId: string | null;
+}
 
+AutoPublish.init(
+    {
+      guildId: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+      },
+      channelId: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+      },
+    },
+    {
+      sequelize,
+      modelName: "autopublish",
+      timestamps: false,
+    }
+);
+
+export default AutoPublish;

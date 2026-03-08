@@ -4,7 +4,7 @@ import { Event } from "../../structures/Event";
 
 export default new Event("channelCreate", async (channel) => {
   try {
-    const logData = await logSchema.findOne({ Guild: channel.guild.id });
+    const logData = await logSchema.findOne({ where: { Guild: channel.guild.id } });
     if (!logData) return;
 
     const logChannel = (await channel.guild.channels.fetch(

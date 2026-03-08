@@ -22,7 +22,7 @@ export default new Command({
         Date.now() - member.joinedTimestamp < 7 * 24 * 60 * 60 * 1000
     ).size;
 
-    interaction.deferReply();
+    await interaction.deferReply();
 
     try {
       const chart = new QuickChart();

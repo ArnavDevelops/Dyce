@@ -44,7 +44,7 @@ export default new Command({
         await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
 
         try {
-            startTyping(channel)
+            await startTyping(channel)
             setTimeout(async () => {
                 return await channel.send(`${message}\n **Requested by: ${interaction.user.username}**`)
             }, 2000)

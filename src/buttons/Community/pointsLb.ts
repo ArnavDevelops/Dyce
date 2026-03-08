@@ -18,11 +18,11 @@ export default new Button("leaderboard:", async ({ interaction }) => {
 
   const usersPerPage = 10;
   const usersToSkip = (page - 1) * usersPerPage;
-  const users = await pointsSchema
-    .find()
-    .sort({ points: -1 })
-    .skip(usersToSkip)
-    .limit(usersPerPage);
+  const users = await pointsSchema.findAll({
+    order: [["points", "DESC"]],
+    offset: usersToSkip,
+    limit: usersPerPage,
+  });
 
   let leaderboard = ``;
   let rank = usersToSkip + 1;

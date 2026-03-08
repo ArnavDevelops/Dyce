@@ -44,7 +44,7 @@ export default new Command({
     if (args.getSubcommand() === "single") {
       const warnId = args.getString("warnid");
 
-      const data = await warnModel.findById(warnId);
+      const data = await warnModel.findByPk(warnId);
       if (data == null) return;
       const user = guild.members.cache.get(data.userId);
       if (!data) {
@@ -56,7 +56,7 @@ export default new Command({
           flags: ["Ephemeral"],
         });
       }
-      await data.deleteOne();
+      await data.destroy();
 
       const embed = new EmbedBuilder()
         .setDescription(
@@ -69,7 +69,7 @@ export default new Command({
     if (args.getSubcommand() === "all") {
       const user = args.getUser("user");
 
-      const data = await warnModel.find({ userId: user.id });
+      const data = await warnModel.findAll({ where: { userId: user.id } });
 
       const noWarnings = new EmbedBuilder()
         .setDescription(`***:warning: ${user.username} has no warnings.***`)
@@ -80,7 +80,7 @@ export default new Command({
           flags: ["Ephemeral"],
         });
 
-      await warnModel.deleteMany({ userId: user.id });
+      await warnModel.destroy({ where: { userId: user.id } });
       const embed = new EmbedBuilder()
         .setDescription(
           `***:white_check_mark: Successfully deleted all of ${user.username}'s warnings.***`

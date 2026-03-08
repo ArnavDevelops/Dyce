@@ -1,9 +1,35 @@
-import { Schema, model } from "mongoose";
+import { DataTypes, Model } from "sequelize";
+import sequelize from "../structures/database";
 
-const schema = new Schema({
-  Guild: String,
-  Channel: String,
-});
+interface LoggingAttributes {
+  Guild: string;
+  Channel: string;
+}
 
-const logSchema = model("Logging", schema);
-export default logSchema
+class Logging
+    extends Model<LoggingAttributes, LoggingAttributes>
+    implements LoggingAttributes
+{
+  declare Guild: string;
+  declare Channel: string;
+}
+
+Logging.init(
+    {
+      Guild: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+      },
+      Channel: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+    },
+    {
+      sequelize,
+      modelName: "logging",
+      timestamps: false,
+    }
+);
+
+export default Logging;

@@ -4,7 +4,7 @@ import { Event } from "../../structures/Event";
 
 export default new Event("guildMemberUpdate", async (oldMember, newMember) => {
   try {
-    const logData = await logSchema.findOne({ Guild: newMember.guild.id });
+    const logData = await logSchema.findOne({ where: { Guild: newMember.guild.id } });
     if (!logData) return;
 
     const logChannel = newMember.guild.channels.cache.get(
@@ -136,7 +136,7 @@ export default new Event("guildMemberUpdate", async (oldMember, newMember) => {
 
       await logChannel.send({ embeds: [embed] });
     }
-  } catch (err) {
-    console.error(err);
+  } catch {
+    return;
   }
 });

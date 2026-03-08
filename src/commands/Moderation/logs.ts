@@ -38,8 +38,10 @@ export default new Command({
     if (args.getSubcommand() === "set") {
       const channel = args.getChannel("channel");
       const data = await messageLogSchema.findOne({
-        Guild: guild.id,
-        Channel: channel.id,
+        where: {
+          Guild: guild.id,
+          Channel: channel.id,
+        }
       });
       if (data) {
         const embed = new EmbedBuilder()
@@ -67,11 +69,10 @@ export default new Command({
         }
 
         try {
-          await messageLogSchema.findOneAndUpdate(
-            { Guild: guild.id },
-            { Guild: guild.id, Channel: channel.id },
-            { upsert: true }
-          );
+          await messageLogSchema.upsert({
+            Guild: guild.id,
+            Channel: channel.id,
+          });
         } catch (err) {
           return;
         }
@@ -86,7 +87,7 @@ export default new Command({
 
     else if (args.getSubcommand() === "disable") {
       try {
-        await messageLogSchema.findOneAndDelete({ Guild: guild.id });
+        await messageLogSchema.destroy({ where: { Guild: guild.id } });
       } catch (err) {
         return;
       }

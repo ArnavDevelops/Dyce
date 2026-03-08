@@ -11,12 +11,13 @@ import { glob } from "glob";
 import { CommandType } from "../typings/Command";
 import { Event } from "./Event";
 import { Button } from "./Button";
-const rest = new REST({ version: "10" }).setToken(process.env.Token);
+import logging from "../typings/logging";
+const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
 export class ExtendedClient extends Client {
   commands: Collection<string, CommandType> = new Collection();
   buttons: Collection<string, any> = new Collection();
-  selectMenus: Collection<string, any> = new Collection();
+  //selectMenus: Collection<string, any> = new Collection();
 
   constructor() {
     super({
@@ -28,8 +29,12 @@ export class ExtendedClient extends Client {
   }
 
   start() {
-    this.registerModules();
-    this.login(process.env.Token);
+    this.registerModules().catch((err) => {
+      logging(`Failed to register modules ${err}`, "ERROR")
+    })
+    this.login(process.env.TOKEN).catch((err) => {
+      logging(`Failed to login: ${err}`, "ERROR")
+    })
   }
 
   async importFile(filePath: string) {
@@ -50,14 +55,14 @@ export class ExtendedClient extends Client {
     }
 
     try {
-    console.log("✅ Registering commands...");
+    logging("✅ Registering commands...", "INFO");
     this.application?.commands.cache.clear();
     await this.application?.commands.fetch();
-    await rest.put(Routes.applicationCommands(process.env.clientId), { body: slashCommands });
+    await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: slashCommands });
 
-    console.log("✨ Commands Registered successfully!");
+    logging("✨ Commands Registered successfully!", "INFO");
     } catch (err) {
-      console.error(err);
+      logging(err, "ERROR")
     }
 
     //Events

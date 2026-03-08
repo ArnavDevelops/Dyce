@@ -55,131 +55,105 @@ export default new Command({
       ],
     },
   ],
+
   run: async ({ interaction, args }) => {
-    //Increase
-    if (args.getSubcommand() === "increase") {
-      const { member, guild } = interaction;
-      const e = args.getUser("user");
-      const user = await guild.members.fetch(e).catch(async (err: Error) => {
-        const failEmbed = new EmbedBuilder()
+    const { guild } = interaction;
+
+    const subcommand = args.getSubcommand();
+    const targetUser = args.getUser("user");
+    const amount = args.getNumber("points");
+
+    const member = await guild.members.fetch(targetUser.id).catch(async () => {
+      const embed = new EmbedBuilder()
           .setColor("Red")
           .setDescription(
-            "***:warning: There was an error searching for the user, please make sure that the user is in the server.***"
+              "***:warning: There was an error searching for the user, please make sure that the user is in the server.***"
           );
-        await interaction.reply({ embeds: [failEmbed], flags: "Ephemeral" });
-        return null;
-      });
-      if (!user) return;
-      const points = args.getNumber("points");
 
-      const userPoints = await pointsSchema.findOne({
-        userId: user.id,
-        guildId: guild.id,
-      });
-      const Bots = guild.members.cache.get(user.id);
-      if (Bots.user.bot) {
-        const embed = new EmbedBuilder()
+      await interaction.reply({ embeds: [embed], flags: ["Ephemeral"] });
+      return null;
+    });
+
+    if (!member) return;
+
+    if (member.user.bot) {
+      const embed = new EmbedBuilder()
           .setColor("Red")
           .setDescription("***:x: Bots cannot have any points.***");
-        return await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
-      }
-      let addedPoints;
 
-      try {
+      return interaction.reply({ embeds: [embed], flags: ["Ephemeral"] });
+    }
+
+    const userPoints = await pointsSchema.findOne({
+      where: {
+        userId: member.id,
+        guildId: guild.id,
+      },
+    });
+
+    try {
+      let newPoints = 0;
+
+      if (subcommand === "increase") {
         if (userPoints) {
-          addedPoints = userPoints.points += points;
+          userPoints.points += amount;
+          newPoints = userPoints.points;
           await userPoints.save();
         } else {
           await pointsSchema.create({
-            userId: user.id,
+            userId: member.id,
             guildId: guild.id,
-            points: points,
+            points: amount,
           });
+          newPoints = amount;
         }
-
-        const embed = new EmbedBuilder()
-          .setDescription(`✅ <@${user.id}> has got ***${points}P*** `)
-          .setFooter({
-            text: `User's points: ${addedPoints || points}P`,
-            iconURL: user.user.avatarURL(),
-          })
-          .setColor("Green");
-        return await interaction.reply({ embeds: [embed] });
-      } catch (err) {
-        return;
-      }
-    }
-
-    //Decrease
-    else if (args.getSubcommand() === "decrease") {
-      const { guild } = interaction;
-      const e = args.getUser("user");
-      const user = await guild.members.fetch(e).catch(async (err: Error) => {
-        const failEmbed = new EmbedBuilder()
-          .setColor("Red")
-          .setDescription(
-            "***:warning: There was an error searching for the user, please make sure that the user is in the server.***"
-          );
-        await interaction.reply({ embeds: [failEmbed], flags: "Ephemeral" });
-        return null;
-      });
-      if (!user) return;
-      const points = args.getNumber("points");
-      const member = guild.members.cache.get(user.id);
-      if (member.user.bot) {
-        const embed = new EmbedBuilder()
-          .setColor("Red")
-          .setDescription("***:x: Bots cannot have any points.***");
-        return await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
       }
 
-      const userPoints = await pointsSchema.findOne({
-        userId: user.id,
-        guildId: guild.id,
-      });
-
-      try {
+      if (subcommand === "decrease") {
         if (!userPoints) {
-          const noPoints = new EmbedBuilder()
-            .setColor("Red")
-            .setDescription(
-              "***:warning: The user you mentioned doesn't have any points.***"
-            );
-          return await interaction.reply({
-            embeds: [noPoints],
-            flags: "Ephemeral",
-          });
-        } else {
-          if (userPoints.points < points) {
-            const lessPoints = new EmbedBuilder()
+          const embed = new EmbedBuilder()
               .setColor("Red")
               .setDescription(
-                `***:warning: The mentioned user doesn't have that many points (User's points: ${userPoints.points}).***`
+                  "***:warning: The user you mentioned doesn't have any points.***"
               );
-            return await interaction.reply({
-              embeds: [lessPoints],
-              flags: "Ephemeral",
-            });
-          }
-          let removedPoints;
 
-          removedPoints = userPoints.points -= points;
-          await userPoints.save();
-
-          const embed = new EmbedBuilder()
-            .setDescription(
-              `✅ <@${user.id}> now has ***${points}P*** deducted`
-            )
-            .setFooter({
-              text: `User's points: ${removedPoints || points}P`,
-              iconURL: user.user.avatarURL(),
-            })
-            .setColor("Green");
-          return await interaction.reply({ embeds: [embed] });
+          return interaction.reply({
+            embeds: [embed],
+            flags: ["Ephemeral"],
+          });
         }
-      } catch (err) {
-        return;
+
+        if (userPoints.points < amount) {
+          const embed = new EmbedBuilder()
+              .setColor("Red")
+              .setDescription(
+                  `***:warning: The mentioned user doesn't have that many points (User's points: ${userPoints.points}).***`
+              );
+
+          return interaction.reply({
+            embeds: [embed],
+            flags: ["Ephemeral"],
+          });
+        }
+
+        userPoints.points -= amount;
+        newPoints = userPoints.points;
+        await userPoints.save();
       }
+
+      const embed = new EmbedBuilder()
+          .setColor("Green")
+          .setDescription(
+              `✅ <@${member.id}> ${subcommand === "increase" ? "received" : "lost"} ***${amount}P***`
+          )
+          .setFooter({
+            text: `User's points: ${newPoints}P`,
+            iconURL: member.user.avatarURL(),
+          });
+
+      return interaction.reply({ embeds: [embed] });
+    } catch {
+      return;
     }
   },
 });

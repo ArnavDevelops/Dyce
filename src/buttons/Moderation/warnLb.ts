@@ -29,12 +29,14 @@ export default new Button("warnsBoard:", async ({ interaction }) => {
 
   const warnsPerPage = 5;
   const warnsToSkip = (page - 1) * warnsPerPage;
-  const data = await ModSchema.find({
-    guildId: guild.id,
-    userId: user.id || user.user.id,
+  const data = await ModSchema.findAll({
+    where: {
+      guildId: guild.id,
+      userId: user.id || user.user.id,
+    },
+    limit: warnsPerPage,
+    offset: warnsToSkip
   })
-    .limit(warnsPerPage)
-    .skip(warnsToSkip);
 
   let warnsBoard = ``;
   let warns = warnsToSkip + 1;
@@ -56,7 +58,7 @@ export default new Button("warnsBoard:", async ({ interaction }) => {
     for (const warn of data) {
       warnsBoard +=
         [
-          `**warn ID:** ${warn._id}`,
+          `**warn ID:** ${warn.id}`,
           `**Date:** <t:${Math.round((warn.timestamp as any) / 1000)}>`,
           `**Reason:** ${warn.reason}`,
         ].join("\n") + "\n\n";

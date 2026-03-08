@@ -10,9 +10,9 @@ export default new Button("solution", async ({ interaction }) => {
     )
     .addFields([
       {
-        name: "By placing dyce's role on top",
+        name: "By placing dyce' role on top",
         value:
-          "If dyce's bot role is above others then dyce can easily execute every command, specially the ones related to Moderation.",
+          "If dyce' bot role is above others then dyce can easily execute every command, specially the ones related to Moderation.",
       },
       {
         name: "Retrying",

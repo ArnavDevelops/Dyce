@@ -21,7 +21,7 @@ export default new Command({
     const { guild } = interaction;
     try {
       const e = args.getUser("user") || interaction.user;
-      const user = await guild.members.fetch(e).catch(async (err: Error) => {
+      const user = await guild.members.fetch(e).catch(async () => {
         const failEmbed = new EmbedBuilder()
           .setColor("Red")
           .setDescription(
@@ -32,9 +32,11 @@ export default new Command({
       });
       if (!user) return;
 
-      const userPoints = await pointsSchema.find({
-        userId: user.id,
-        guildId: guild.id,
+      const userPoints = await pointsSchema.findAll({
+        where: {
+          userId: user.id,
+          guildId: guild.id,
+        }
       });
       const Bots = guild.members.cache.get(user.id);
       if (Bots.user.bot) {

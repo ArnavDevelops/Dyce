@@ -22,16 +22,16 @@ export default new Button("userinfo:", async ({ interaction, client }) => {
       .setTitle(`Roles [${memberRolesSize}]`)
       .setDescription(`${memberRoles || "No Roles"}`);
 
-    interaction.reply({ embeds: [embed], flags: "Ephemeral" });
+    await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
   } else if (customId.startsWith("userinfo:badges")) {
     const userId = customId.split("-")[1];
-    const user = await client.users.cache.get(userId);
+    const user = client.users.cache.get(userId);
 
     let badges = [] as any;
 
     await Promise.all(
       user.flags.toArray().map(async (badge: any) => {
-        if (badge === "PreimumEarlySupporter")
+        if (badge === "PremiumEarlySupporter")
           badges.push(
             "<:earlysupporter:1437459021597642772> - Early Supporter"
           );
@@ -100,6 +100,6 @@ export default new Button("userinfo:", async ({ interaction, client }) => {
       .setTitle(`Badges [${badges.length}]`)
       .setDescription(`${badges.join("\n") || "No Badges"}`);
 
-    interaction.reply({ embeds: [embed], flags: "Ephemeral" });
+    await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
   }
 });

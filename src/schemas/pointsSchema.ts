@@ -1,10 +1,44 @@
-import { Schema, model } from "mongoose";
+import { DataTypes, Model } from "sequelize";
+import sequelize from "../structures/database";
 
-const schema = new Schema({
-  guildId: String,
-  userId: String,
-  points: { type: Number, required: true },
-});
+interface PointsAttributes {
+  guildId: string;
+  userId: string;
+  points: number;
+}
 
-const pointsSchema = model("points", schema);
-export default pointsSchema
+class Points
+    extends Model<PointsAttributes, PointsAttributes>
+    implements PointsAttributes
+{
+  declare guildId: string;
+  declare userId: string;
+  declare points: number;
+}
+
+Points.init(
+    {
+      guildId: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+      },
+
+      userId: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+      },
+
+      points: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
+    },
+    {
+      sequelize,
+      modelName: "points",
+      timestamps: false,
+    }
+);
+
+export default Points;

@@ -20,11 +20,13 @@ export default new Command({
   run: async ({ interaction, args }) => {
     const { guild, user, member } = interaction;
 
-    const reason = args.getString("reason");
+    const reason = args.getString("reason") || "No reason provided";
 
     const data = await afkSchema.findOne({
-      guildId: guild.id,
-      userId: user.id,
+      where: {
+        guildId: guild.id,
+        userId: user.id,
+      }
     });
     if (data) {
       const embed = new EmbedBuilder()
@@ -41,15 +43,15 @@ export default new Command({
         );
       await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
 
-      await new afkSchema({
+      await afkSchema.create({
         guildId: guild.id,
         userId: user.id,
         reason: reason,
         date: Date.now(),
         nickname: nickname,
-      }).save();
+      })
 
-      await member.setNickname(`[AFK] ${nickname}`).catch((err: any) => {
+      await member.setNickname(`[AFK] ${nickname}`).catch(() => {
         return;
       });
     }

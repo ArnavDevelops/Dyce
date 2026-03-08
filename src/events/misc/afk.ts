@@ -2,60 +2,60 @@ import afkSchema from "../../schemas/afkSchema";
 import { Event } from "../../structures/Event";
 
 export default new Event("messageCreate", async (message) => {
-  const { guild } = message;
-
+  if (!message.guild) return;
   if (message.author.bot) return;
+
   if (
-    message.content.includes("@here") ||
-    message.content.includes("@everyone")
-  )
-    return;
+      message.content.includes("@here") ||
+      message.content.includes("@everyone")
+  ) return;
+
+  const guild = message.guild;
 
   const check = await afkSchema.findOne({
-    guildId: guild.id,
-    userId: message.author.id,
+    where: {
+      guildId: guild.id,
+      userId: message.author.id,
+    }
   });
 
   if (check) {
-    message.member.setNickname(check.nickname).catch((err: any) => {
-      return;
-    });
-    return await afkSchema.deleteMany({
-      guildId: guild.id,
-      userId: message.author.id,
-    });
-  } else {
-    const members = message.mentions.users.first();
-    if (!members) return;
-    const data = await afkSchema.findOne({
-      guildId: guild.id,
-      userId: members.id,
-    });
-    if (!data) return;
-
-    const member = guild.members.cache.get(members.id);
-    const reason = data.reason;
-
-    try {
-      if (message.content.includes(`@<${members.id}>`)) {
-        const m = await message.reply(
-          `**:warning: ${
-            member.user.username
-          } is currently afk** (<t:${Math.floor(
-            (data.date as any) / 1000
-          )}:R>) | **Reason:** ${reason}`
-        );
-
-        setTimeout(async () => {
-          message.delete();
-        }, 1000);
-
-        setTimeout(() => {
-          m.delete();
-        }, 10000);
+    await message.member.setNickname(check.nickname).catch(() => {});
+    await afkSchema.destroy({
+      where: {
+        guildId: guild.id,
+        userId: message.author.id,
       }
-    } catch (e) {
-      return;
+    });
+    return;
+  }
+
+  const mentioned = message.mentions.users.first();
+  if (!mentioned) return;
+
+  const data = await afkSchema.findOne({
+    where: {
+      guildId: guild.id,
+      userId: mentioned.id,
     }
+  });
+
+  if (!data) return;
+
+  const member = guild.members.cache.get(mentioned.id);
+  const reason = data.reason;
+
+  try {
+    const reply = await message.reply(
+        `**:warning: ${member.user.username} is currently AFK** (<t:${Math.floor(
+            data.date / 1000
+        )}:R>) | **Reason:** ${reason}`
+    );
+
+    setTimeout(() => message.delete().catch(() => {}), 1000);
+    setTimeout(() => reply.delete().catch(() => {}), 10000);
+
+  } catch {
+    return;
   }
 });

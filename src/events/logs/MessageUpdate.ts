@@ -7,7 +7,7 @@ export default new Event("messageUpdate", async (oldMessage, newMessage) => {
     if (newMessage.content === oldMessage.content) return;
     if (newMessage.author.bot) return;
 
-    const logData = await logSchema.findOne({ Guild: newMessage.guild.id });
+    const logData = await logSchema.findOne({ where: { Guild: newMessage.guild.id } });
     if (!logData) return;
 
     const logChannel = newMessage.guild.channels.cache.get(

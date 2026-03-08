@@ -4,7 +4,7 @@ import { Event } from "../../structures/Event";
 
 export default new Event("stickerUpdate", async (oldSticker, newSticker) => {
   try {
-    const logData = await logSchema.findOne({ Guild: newSticker.guild.id });
+    const logData = await logSchema.findOne({ where: { Guild: newSticker.guild.id } });
     if (!logData) return;
 
     const logChannel = newSticker.guild.channels.cache.get(

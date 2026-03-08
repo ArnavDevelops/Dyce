@@ -25,7 +25,7 @@ export default new Command({
   run: async ({ interaction, args }) => {
     const { guild } = interaction;
 
-    const moderator = args.getUser("moderator") || interaction.user;
+    const moderator = args.getUser("user") || interaction.user;
     if (!moderator) return;
     const userInGuild = guild.members.cache.get(moderator.id);
     let notesBoard = ``;
@@ -33,10 +33,14 @@ export default new Command({
     const notesPerPage = 5;
     const notesToSkip = (page - 1) * notesPerPage;
 
-    const data = await modNotesSchema
-      .find({ moderatorId: moderator.id, guildId: guild.id })
-      .limit(notesPerPage)
-      .skip(notesToSkip);
+    const data = await modNotesSchema.findAll({
+      where: {
+        moderatorId: moderator.id,
+        guildId: guild.id,
+      },
+      limit: notesPerPage,
+      offset: notesToSkip,
+    });
 
     let notes = notesToSkip + 1;
 

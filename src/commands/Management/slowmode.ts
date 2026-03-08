@@ -72,7 +72,7 @@ export default new Command({
       }
 
       try {
-        channel.setRateLimitPerUser(duration);
+        await channel.setRateLimitPerUser(duration);
 
         const embed = new EmbedBuilder()
           .setColor("Green")

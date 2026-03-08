@@ -4,7 +4,7 @@ import { Event } from "../../structures/Event";
 
 export default new Event("roleUpdate", async (oldRole, newRole) => {
   try {
-    const logData = await logSchema.findOne({ Guild: newRole.guild.id });
+    const logData = await logSchema.findOne({ where: { Guild: newRole.guild.id } });
     if (!logData) return;
 
     const logChannel = newRole.guild.channels.cache.get(

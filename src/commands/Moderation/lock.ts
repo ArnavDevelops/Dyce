@@ -52,9 +52,6 @@ export default new Command({
         });
       }
       const reason = args.getString("reason") || "No reason given";
-      if (!channel) {
-        return (channel = interaction.channel);
-      }
 
       if (channel.permissionsFor(guild.id).has("SendMessages") === false) {
         const alreadyLocked = new EmbedBuilder()

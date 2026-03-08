@@ -4,7 +4,7 @@ import { Event } from "../../structures/Event";
 
 export default new Event("roleDelete", async (role) => {
   try {
-    const logData = await logSchema.findOne({ Guild: role.guild.id });
+    const logData = await logSchema.findOne({ where: { Guild: role.guild.id } });
     if (!logData) return;
 
     const logChannel = role.guild.channels.cache.get(

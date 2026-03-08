@@ -95,7 +95,7 @@ export default new Command({
 
       let referencedMessage = await channel.messages
         .fetch(messageId)
-        .catch((err: Error) => {
+        .catch(() => {
           return;
         });
       if (!referencedMessage) {
@@ -107,7 +107,7 @@ export default new Command({
 
       let beforeReferencedMessage = await channel.messages
         .fetch(beforeMsgId)
-        .catch((err: Error) => {
+        .catch(() => {
           return;
         });
       if (!beforeReferencedMessage) {
@@ -144,7 +144,7 @@ export default new Command({
               const embed = new EmbedBuilder()
                 .setColor("Red")
                 .setDescription(
-                  "***:warning: You cannot delete more than 100 messages due to the Discord API limiting it to 100. Sorry for inconvience."
+                  "***:warning: You cannot delete more than 100 messages due to the Discord API limiting it to 100. Sorry for inconvenience."
                 );
               return await interaction.reply({
                 embeds: [embed],
@@ -158,7 +158,7 @@ export default new Command({
               for (const messages of messagesToDeleteFiltered.values()) {
                 const ageInMs = Date.now() - messages.createdAt.getTime();
                 const ageInDays = ageInMs / (1000 * 60 * 60 * 24);
-                //If message is older then 2 weeks
+                //If message is older than 2 weeks
                 if (ageInDays > 14) {
                   const DaysEmbed = new EmbedBuilder()
                     .setColor("Red")
@@ -208,7 +208,7 @@ export default new Command({
             const embed = new EmbedBuilder()
               .setColor("Red")
               .setDescription(
-                "***:warning: You cannot delete more than 100 messages due to the Discord API limiting it to 100. Sorry for inconvience."
+                "***:warning: You cannot delete more than 100 messages due to the Discord API limiting it to 100. Sorry for inconvenience."
               );
             return await interaction.reply({
               embeds: [embed],

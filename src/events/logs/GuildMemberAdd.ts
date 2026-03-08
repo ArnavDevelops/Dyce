@@ -6,7 +6,7 @@ import { Event } from "../../structures/Event";
 export default new Event("guildMemberAdd", async (member) => {
   try {
     //JoinRole
-    const joinRole = await joinRoleSchema.findOne({ guildId: member.guild.id });
+    const joinRole = await joinRoleSchema.findOne({ where: { guildId: member.guild.id } });
     if (!joinRole) return;
 
     if (joinRole) {
@@ -14,7 +14,7 @@ export default new Event("guildMemberAdd", async (member) => {
     }
 
     //Log
-    const logData = await logSchema.findOne({ Guild: member.guild.id });
+    const logData = await logSchema.findOne({ where: { Guild: member.guild.id } });
     if (!logData) return;
 
     const logChannel = member.guild.channels.cache.get(

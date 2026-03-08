@@ -70,7 +70,7 @@ export default new Command({
           `***⏳ Your timeout/mute has been removed in ${guild.name} by ${member.user.username}***`
         )
         .addFields({ name: "Reason", value: reason });
-      await untimeMember.send({ embeds: [dmEmbed] }).catch((err: Error) => {
+      await untimeMember.send({ embeds: [dmEmbed] }).catch(() => {
         return;
       });
 
@@ -82,7 +82,7 @@ export default new Command({
         .addFields({ name: "Reason", value: reason });
       return await interaction
         .reply({ embeds: [embed1] })
-        .catch((err: Error) => {
+        .catch(() => {
           return;
         });
     } catch (err) {

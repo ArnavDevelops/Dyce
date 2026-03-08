@@ -34,7 +34,7 @@ export default new Command({
     },
     {
       name: "duration",
-      description: "The duration (Ex., 1h",
+      description: "The duration (Ex., 1h)",
       type: ApplicationCommandOptionType.String,
       required: true,
     },
@@ -50,7 +50,7 @@ export default new Command({
 
     try {
       const banUser = args.getUser("user");
-      const banMember = await guild.members.fetch(banUser);
+      const banMember = await guild.members.fetch(banUser.id);
       const reason = args.getString("reason");
       const duration = args.getString("duration");
       const note = args.getString("note");
@@ -68,16 +68,14 @@ export default new Command({
         });
       } else {
         const softbanRoleData = await softbanRoleSchema.findOne({
-          guildId: guild.id,
+          where: { guildId: guild.id }
         });
-        if (softbanRoleData == null) return;
         if (!softbanRoleData) {
           const button = new ButtonBuilder()
             .setCustomId("softban")
             .setLabel("Create role?")
             .setStyle(ButtonStyle.Primary);
           const row = new ActionRowBuilder().addComponents(button);
-          2;
           const embed = new EmbedBuilder()
             .setColor("Red")
             .setDescription(
@@ -102,10 +100,11 @@ export default new Command({
         }
 
         const data = await softbanSchema.findOne({
-          guildId: guild.id,
-          userId: banUser.id,
+          where: {
+            guildId: guild.id,
+            userId: banUser.id,
+          }
         });
-        if (data == null) return;
 
         if (banMember.id == member.id) {
           const cannotbanyourself = new EmbedBuilder()
@@ -154,7 +153,7 @@ export default new Command({
               name: "Reason",
               value: `${reason}`,
             });
-          await banMember.send({ embeds: [dmEmbed] }).catch((err: Error) => {
+          await banMember.send({ embeds: [dmEmbed] }).catch(() => {
             return;
           });
 
@@ -186,21 +185,26 @@ export default new Command({
         }
 
         setTimeout(async () => {
-          banMember.roles.remove(role);
-          return await softbanSchema.deleteOne({
-            userId: banUser.id,
-            guildId: guild.id,
+          if (banMember.roles.cache.has(role.id)) {
+            await banMember.roles.remove(role).catch(() => {});
+          }
+
+          await softbanSchema.destroy({
+            where: {
+              userId: banUser.id,
+              guildId: guild.id,
+            }
           });
         }, toMs(duration || data.duration));
 
         if (note) {
-          return await new modNotesSchema({
+          return await modNotesSchema.create({
             guildId: guild.id,
             moderatorId: interaction.user.id,
             command: "/softban",
             date: Date.now(),
             note: `Moderated: ${banMember.user.username} | **${note}**`,
-          }).save();
+          })
         }
       }
     } catch (err) {

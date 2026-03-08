@@ -16,10 +16,10 @@ export default new Button("softban", async ({ interaction }) => {
         "https://cdn.discordapp.com/emojis/1233294833389539390.webp?size=80&quality=lossless",
       text: "You need to manage if the role can view in specific channels or not yourself.",
     });
-  interaction.reply({ embeds: [embed], flags: "Ephemeral" });
+  await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
 
-  new softbanRoleSchema({
+  await softbanRoleSchema.create({
     guildId: guild.id,
     roleId: role.id,
-  }).save();
+  })
 });

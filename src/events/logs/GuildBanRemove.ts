@@ -4,7 +4,7 @@ import { Event } from "../../structures/Event";
 
 export default new Event("guildBanRemove", async (ban) => {
   try {
-    const logData = await logSchema.findOne({ Guild: ban.guild.id });
+    const logData = await logSchema.findOne({ where: { Guild: ban.guild.id } });
     if (!logData) return;
 
     const logChannel = ban.guild.channels.cache.get(

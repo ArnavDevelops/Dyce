@@ -134,7 +134,7 @@ export default new Command({
         let num = 0;
         setTimeout(() => {
           members.forEach(async (m: any) => {
-            await m.roles.add(role).catch((err: Error) => {
+            await m.roles.add(role).catch(() => {
               return;
             });
             num++;
@@ -184,7 +184,7 @@ export default new Command({
         let num = 0;
         setTimeout(() => {
           members.forEach(async (m: any) => {
-            await m.roles.add(role).catch((err: Error) => {
+            await m.roles.add(role).catch(() => {
               return;
             });
             num++;
@@ -232,7 +232,7 @@ export default new Command({
         let num = 0;
         setTimeout(() => {
           members.forEach(async (m: any) => {
-            await m.roles.add(role).catch((err: Error) => {
+            await m.roles.add(role).catch(() => {
               return;
             });
             num++;
@@ -282,7 +282,7 @@ export default new Command({
       let num = 0;
       setTimeout(() => {
         members.forEach(async (m: any) => {
-          await m.roles.add(role).catch((err: Error) => {
+          await m.roles.add(role).catch(() => {
             return;
           });
           num++;
@@ -308,7 +308,7 @@ export default new Command({
       const user = args.getUser("user");
       const person = await guild.members
         .fetch(user)
-        .catch(async (err: Error) => {
+        .catch(async () => {
           const failEmbed = new EmbedBuilder()
             .setColor("Red")
             .setDescription(
@@ -343,12 +343,11 @@ export default new Command({
             `***:white_check_mark: Successfully added ${addRole} and removed ${removeRole} from ${user.toString()}.***`
           )
           .setColor("Green");
-        interaction.reply({ embeds: [addEmbed], flags: ["Ephemeral"] });
+        await interaction.reply({ embeds: [addEmbed], flags: ["Ephemeral"] });
       } catch (error) {
         return;
       }
     } else if (args.getSubcommand() === "give") {
-      console.log("this")
       const role = args.getRole("role");
 
       if (role.name === "@everyone") {
@@ -366,7 +365,7 @@ export default new Command({
       const user = args.getUser(`user`);
       const targetMember = await guild.members
         .fetch(user)
-        .catch(async (err: Error) => {
+        .catch(async () => {
           const failEmbed = new EmbedBuilder()
             .setColor("Red")
             .setDescription(
@@ -407,7 +406,7 @@ export default new Command({
       const user = args.getUser("user");
       const targetMember = await guild.members
         .fetch(user)
-        .catch(async (err: Error) => {
+        .catch(async () => {
           const failEmbed = new EmbedBuilder()
             .setColor("Red")
             .setDescription(

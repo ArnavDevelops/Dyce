@@ -39,7 +39,7 @@ export default new Command({
     const note = args.getString("note");
     const member = await guild.members
       .fetch(user.id)
-      .catch(async (err: Error) => {
+      .catch(async () => {
         const failEmbed = new EmbedBuilder()
           .setColor("Red")
           .setDescription(
@@ -74,7 +74,7 @@ export default new Command({
           name: "Reason",
           value: `${reason}`,
         });
-      await member.send({ embeds: [dmEmbed] }).catch((err: Error) => {
+      await member.send({ embeds: [dmEmbed] }).catch(() => {
         return;
       });
 
@@ -92,13 +92,13 @@ export default new Command({
       await member.kick({ reason: reason });
 
       if (note) {
-        await new modNotesSchema({
+        await modNotesSchema.create({
           guildId: guild.id,
           moderatorId: interaction.user.id,
           command: "/kick",
           date: Date.now(),
           note: `Moderated: ${member.user.username} | **${note}**`,
-        }).save();
+        })
       }
     } catch (err) {
       return;

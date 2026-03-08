@@ -163,7 +163,7 @@ export default new Command({
     });
 
     try {
-      await new reactionRolesSchema({
+      await reactionRolesSchema.create({
         guildId: guild.id,
         channelId: channel.id,
         msgId: msg.id,
@@ -171,7 +171,7 @@ export default new Command({
         role2: role2.id,
         role3: role3 ? role3.id : "None",
         role4: role4 ? role4.id : "None",
-      }).save();
+      })
     } catch (err) {
       return;
     }

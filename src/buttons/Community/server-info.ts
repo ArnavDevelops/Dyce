@@ -14,5 +14,5 @@ export default new Button("roles", async ({ interaction }) => {
     .setTitle(`Roles [${guildrolesSize}]`)
     .setDescription(`${guildRoles}`);
 
-  interaction.reply({ embeds: [embed], flags: "Ephemeral" });
+  await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
 });

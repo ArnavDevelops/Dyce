@@ -10,7 +10,7 @@ export default new Event(
   "channelDelete",
   async (channel: NonThreadGuildBasedChannel) => {
     try {
-      const logData = await logSchema.findOne({ Guild: channel.guild.id });
+      const logData = await logSchema.findOne({ where: { Guild: channel.guild.id } });
       if (!logData) return;
 
       const logChannel = channel.guild.channels.cache.get(

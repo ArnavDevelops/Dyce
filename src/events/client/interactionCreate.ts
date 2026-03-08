@@ -6,14 +6,17 @@ import {
 import { Event } from "../../structures/Event";
 import { ExtendedInteraction } from "../../typings/Command";
 import { client } from "../../";
+import logging from "../../typings/logging";
 
 export default new Event("interactionCreate", async (interaction) => {
   //Application Commands
   if (interaction.isChatInputCommand()) {
     const command = client.commands.get(interaction.commandName);
     if (!command) {
-      await interaction.deferReply();
-      return interaction.followUp("You have used an nonexistent command");
+      return interaction.reply({
+        content: "Command not found",
+        ephemeral: true
+      });
     }
 
     try {
@@ -23,7 +26,7 @@ export default new Event("interactionCreate", async (interaction) => {
         interaction: interaction as ExtendedInteraction,
       });
     } catch (err) {
-      console.log(err);
+      logging(err, "ERROR")
     }
   }
 
@@ -34,7 +37,7 @@ export default new Event("interactionCreate", async (interaction) => {
       interaction.customId.startsWith(b.customId)
     );
     if (!button)
-      return console.log(`There's no code for ${interaction.customId} button`);
+      return logging(`There's no code for ${interaction.customId} button`, "WARNING");
 
     try {
       await button.run({
@@ -42,11 +45,11 @@ export default new Event("interactionCreate", async (interaction) => {
         interaction: interaction as ButtonInteraction,
       });
     } catch (err) {
-      console.log(err);
+      logging(err, "ERROR")
     }
   }
 
-  //Only one selectmenu - /help
+  //Only one select menu - /help
   else if (
     interaction.isStringSelectMenu() &&
     interaction.customId.startsWith("helpSelect-")

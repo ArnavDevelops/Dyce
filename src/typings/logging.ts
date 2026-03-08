@@ -1,11 +1,15 @@
-const chalk = require("chalk")
+/**
+ * Made by: https://github.com/BeauTheBeau
+ * Credits to Beau for letting me use this :)
+ */
+import chalk from "chalk";
 
 /**
  * Logs messages with timestamp to the console and writes them to a log file.
  * @param {string} message - The log message to be displayed.
  * @param {("ERROR"|"WARNING"|"INFO"|"DATABASE STATUS")} [logLevel=INFO] - The log level. Possible values: "ERROR", "WARNING", "INFO".
  */
-function logMessage(message: string, logLevel = "INFO") {
+function logMessage(message: string, logLevel: ("ERROR" | "WARNING" | "INFO" | "DATABASE STATUS") = "INFO") {
   const timestamp = new Date().toISOString();
   const formattedMessage = `[${timestamp}] [${logLevel}] ${message}`;
 

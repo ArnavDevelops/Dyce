@@ -51,12 +51,14 @@ export default new Button("event:", async ({ interaction }) => {
 
   try {
     const data = await eventsSchema.findOne({
-      guildId: guild.id,
-      msgId: message.id,
+      where: {
+        guildId: guild.id,
+        msgId: message.id,
+      }
     });
     if (!data) return;
     const msg = await textChannel.messages.fetch(data.msgId);
-    const thread = await textChannel.threads.cache.find(
+    const thread = textChannel.threads.cache.find(
       (x: any) => x.name === data.threadId
     );
     const joiningList = data.joiningList as any;
@@ -90,7 +92,7 @@ export default new Button("event:", async ({ interaction }) => {
         });
 
         joiningList.push(displayName);
-        data.save();
+        await data.save();
       } else {
         const alreadyJoinedEmbed = new EmbedBuilder()
           .setColor("DarkGreen")
@@ -122,7 +124,7 @@ export default new Button("event:", async ({ interaction }) => {
         });
 
         notJoiningList.push(displayName);
-        data.save();
+        await data.save();
       } else {
         const alreadyNotJoinedEmbed = new EmbedBuilder()
           .setColor("Red")
@@ -156,7 +158,7 @@ export default new Button("event:", async ({ interaction }) => {
         });
 
         neutralList.push(displayName);
-        data.save();
+        await data.save();
       } else {
         const tentativeEmbed = new EmbedBuilder()
           .setColor("White")
@@ -170,7 +172,9 @@ export default new Button("event:", async ({ interaction }) => {
       }
     } else if (customId == "event:cancel") {
       const eventsRoleData = await eventsRoleSchema.findOne({
-        guildId: guild.id,
+        where: {
+          guildId: guild.id,
+        }
       });
       if (!eventsRoleData) {
         const joinedEmbed = new EmbedBuilder()
@@ -200,7 +204,7 @@ export default new Button("event:", async ({ interaction }) => {
         buttonRow.components.forEach((c: any) => c.setDisabled(true));
         await interaction.update({ components: [buttonRow.toJSON()] });
         await thread.delete();
-        await eventsSchema.findOneAndDelete({ msgId: message.id });
+        await eventsSchema.destroy({ where: { msgId: message.id } });
         const endembed = new EmbedBuilder()
           .setColor("Red")
           .setDescription(
@@ -238,12 +242,12 @@ export default new Button("event:", async ({ interaction }) => {
       },
     ]);
 
-    msg.edit({ embeds: [trainingEmbed], components: [buttonRow.toJSON()] });
+    await msg.edit({ embeds: [trainingEmbed], components: [buttonRow.toJSON()] });
 
     setTimeout(async () => {
       buttonRow.components.forEach((c: any) => c.setDisabled(true));
       await msg.edit({ components: [buttonRow.toJSON()] });
-      return await eventsSchema.findOneAndDelete({ msgId: message.id });
+      await eventsSchema.destroy({ where: { msgId: message.id } });
     }, data.timeItStarts as any);
   } catch (err) {
     return;

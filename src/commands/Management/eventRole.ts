@@ -28,7 +28,7 @@ export default new Command({
     const role = guild.roles.cache.get(getRole.id);
 
     try {
-      const data = await eventRoleSchema.findOne({ guildId: guild.id });
+      const data = await eventRoleSchema.findOne({ where: { guildId: guild.id } });
 
       if (!data || !data.roleId) {
         const embed = new EmbedBuilder()
@@ -37,7 +37,7 @@ export default new Command({
             `The role \`${role.name}\` has been successfully selected as the role required to host.`
           )
           .setColor("Green");
-        interaction.reply({ embeds: [embed], flags: "Ephemeral" });
+        await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
 
         return await new eventRoleSchema({
           guildId: guild.id,
@@ -56,7 +56,7 @@ export default new Command({
             `<@&${data.roleId}> (${data.roleId}) is already chosen as the role required to host in this server!`
           )
           .setColor("Red");
-        interaction.reply({
+        await interaction.reply({
           embeds: [embed],
           components: [row.toJSON()],
           flags: "Ephemeral",

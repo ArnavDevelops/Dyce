@@ -13,7 +13,7 @@ export default new Event(
     newChannel: NonThreadGuildBasedChannel
   ) => {
     try {
-      const logData = await logSchema.findOne({ Guild: newChannel.guild.id });
+      const logData = await logSchema.findOne({ where: { Guild: newChannel.guild.id } });
       if (!logData) return;
 
       const logChannel = newChannel.guild.channels.cache.get(

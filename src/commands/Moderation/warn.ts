@@ -37,7 +37,7 @@ export default new Command({
     const { member, guild } = interaction;
 
     const e = args.getUser("user");
-    const user = await guild.members.fetch(e).catch(async (err: Error) => {
+    const user = await guild.members.fetch(e).catch(async () => {
       const failEmbed = new EmbedBuilder()
         .setColor("Red")
         .setDescription(
@@ -77,20 +77,20 @@ export default new Command({
       });
     }
 
-    await new warnModel({
+    await warnModel.create({
       userId: user.id,
       guildId: interaction.guildId,
       moderatorId: member.id,
       reason,
       timestamp: Date.now(),
-    }).save();
+    })
 
     const embed = new EmbedBuilder()
       .setDescription(
         `***⚠️ You have been warned in ${guild.name} by ${member.user.username} || Reason: ${reason}***`
       )
       .setColor("Red");
-    await user.send({ embeds: [embed] }).catch((err: Error) => {
+    await user.send({ embeds: [embed] }).catch(() => {
       return;
     });
 
@@ -103,13 +103,13 @@ export default new Command({
 
     try {
       if (note) {
-        return await new modNotesSchema({
+        return await modNotesSchema.create({
           guildId: guild.id,
           moderatorId: interaction.user.id,
           command: "/warn",
           date: Date.now(),
           note: `Moderated: ${user.user.username} | **${note}**`,
-        }).save();
+        });
       }
     } catch (err) {
       return;

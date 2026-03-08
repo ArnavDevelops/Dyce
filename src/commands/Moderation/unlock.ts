@@ -28,7 +28,7 @@ export default new Command({
     },
   ],
   run: async ({ interaction, args }) => {
-    const { guild, member } = interaction;
+    const { guild } = interaction;
     if (args.getSubcommand() === "channel") {
       const role = guild.roles.cache.find((r: any) => r.name === "@everyone");
       let channel = args.getChannel("channel");
@@ -44,7 +44,6 @@ export default new Command({
           flags: "Ephemeral",
         });
       }
-      if (!channel) return (channel = interaction.channel);
 
       if (channel.permissionsFor(guild.id).has("SendMessages") === true) {
         const notlocked = new EmbedBuilder()

@@ -8,8 +8,10 @@ export default new Button("reactionrole:", async ({ interaction }) => {
   const { customId, guild, channel, member } = interaction;
 
   const data = await reactionRolesSchema.findOne({
-    guildId: guild.id,
-    channelId: channel.id,
+    where: {
+      guildId: guild.id,
+      channelId: channel.id,
+    }
   });
   if (!data) return;
 
@@ -87,9 +89,11 @@ export default new Button("reactionrole:", async ({ interaction }) => {
     }
   } else if (customId.startsWith("reactionrole:delete")) {
     if (member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-      await reactionRolesSchema.findOneAndDelete({
-        guildId: guild.id,
-        channelId: channel.id,
+      await reactionRolesSchema.destroy({
+        where: {
+          guildId: guild.id,
+          channelId: channel.id,
+        }
       });
       return await channel.messages.delete(data.msgId);
     } else {

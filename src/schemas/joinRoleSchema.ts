@@ -1,9 +1,35 @@
-import { Schema, model } from "mongoose";
+import { DataTypes, Model } from "sequelize";
+import sequelize from "../structures/database";
 
-const schema = new Schema({
-    guildId: String,
-    roleId: String,
-});
+interface JoinRoleAttributes {
+    guildId: string;
+    roleId: string;
+}
 
-const joinRoleSchema = model("joinRole", schema);
-export default joinRoleSchema
+class JoinRole
+    extends Model<JoinRoleAttributes, JoinRoleAttributes>
+    implements JoinRoleAttributes
+{
+    declare guildId: string;
+    declare roleId: string;
+}
+
+JoinRole.init(
+    {
+        guildId: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+        },
+        roleId: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+    },
+    {
+        sequelize,
+        modelName: "joinRole",
+        timestamps: false,
+    }
+);
+
+export default JoinRole;

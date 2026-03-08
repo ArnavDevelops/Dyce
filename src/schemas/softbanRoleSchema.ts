@@ -1,9 +1,36 @@
-import { Schema, model } from "mongoose";
+import { DataTypes, Model } from "sequelize";
+import sequelize from "../structures/database";
 
-const schema = new Schema({
-  guildId: String,
-  roleId: String,
-});
+interface SoftbanRoleAttributes {
+  guildId: string;
+  roleId: string;
+}
 
-const softbanRoleSchema = model("softbanRole", schema);
-export default softbanRoleSchema
+class SoftbanRole
+    extends Model<SoftbanRoleAttributes, SoftbanRoleAttributes>
+    implements SoftbanRoleAttributes
+{
+  declare guildId: string;
+  declare roleId: string;
+}
+
+SoftbanRole.init(
+    {
+      guildId: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+      },
+
+      roleId: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+    },
+    {
+      sequelize,
+      modelName: "softbanRole",
+      timestamps: false,
+    }
+);
+
+export default SoftbanRole;

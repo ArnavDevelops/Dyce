@@ -1,6 +1,5 @@
 import {
   ApplicationCommandOptionData,
-  ButtonInteraction,
   ChatInputApplicationCommandData,
   CommandInteraction,
   CommandInteractionOptionResolver,
@@ -12,7 +11,7 @@ import { ExtendedClient } from "../structures/Client";
 
 /** Example
  * {
- *  name: "commandname",
+ *  name: "command_name",
  *  description: "any description"
  *  run: async({ }) => {
  *  }

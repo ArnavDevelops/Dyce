@@ -3,7 +3,6 @@ import {
   ChannelType,
   InteractionContextType,
   ApplicationCommandOptionType,
-  NewsChannel,
 } from "discord.js";
 import autoPublishSchema from "../../schemas/autoPublishSchema";
 import { Command } from "../../structures/Command";
@@ -45,8 +44,8 @@ export default new Command({
     const { guild } = interaction;
 
     if (args.getSubcommand() === "add") {
-      const channel = guild.channels.cache.get(args.getChannel("channel").id);
-      if (!channel || channel instanceof NewsChannel) {
+      const channel = args.getChannel("channel", true);
+      if (!channel || channel.type !== ChannelType.GuildAnnouncement) {
         const embed = new EmbedBuilder()
           .setColor("Red")
           .setDescription("***:warning: Please select a valid text channel***");
@@ -57,8 +56,10 @@ export default new Command({
       }
 
       const data = await autoPublishSchema.findOne({
-        guildId: guild.id,
-        channelId: channel.id,
+        where: {
+          guildId: guild.id,
+          channelId: channel.id,
+        }
       });
 
       if (!data) {
@@ -75,10 +76,10 @@ export default new Command({
         await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
 
         try {
-          new autoPublishSchema({
+          await autoPublishSchema.create({
             guildId: guild.id,
             channelId: channel.id,
-          }).save();
+          })
         } catch (err) {
           return;
         }
@@ -91,7 +92,7 @@ export default new Command({
         return await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
       }
     } else if (args.getSubcommand() == "remove") {
-      const channel = guild.channels.cache.get(args.getChannel("channel").id);
+      const channel = args.getChannel("channel", true);
       if (channel.type !== ChannelType.GuildAnnouncement) {
         const embed = new EmbedBuilder()
           .setColor("Red")
@@ -102,8 +103,10 @@ export default new Command({
       }
 
       const data = await autoPublishSchema.findOne({
-        guildId: guild.id,
-        channelId: channel.id,
+        where: {
+          guildId: guild.id,
+          channelId: channel.id,
+        }
       });
 
       if (!data) {
@@ -119,13 +122,10 @@ export default new Command({
           .setDescription(
             `***:white_check_mark: Successfully removed ${channel.name} for autopublishing.***`
           );
-        interaction.reply({ embeds: [embed], flags: "Ephemeral" });
+        await interaction.reply({ embeds: [embed], flags: "Ephemeral" });
 
         try {
-          await autoPublishSchema.findOneAndDelete({
-            guildId: guild.id,
-            channelId: channel.id,
-          });
+          await data.destroy();
         } catch (err) {
           return;
         }

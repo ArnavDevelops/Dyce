@@ -49,8 +49,8 @@ export default new Command({
             `***:white_check_mark: Successfully changed ${user.user.username}'s nickname to "${nickname}"***`
           );
         return await interaction.reply({ embeds: [embed] });
-      } catch (e) {
-        console.log(e);
+      } catch {
+        return;
       }
     }
   },

@@ -1,7 +1,6 @@
 import {
   EmbedBuilder,
   MessageType,
-  PartialMessage,
   TextChannel,
 } from "discord.js";
 import logSchema from "../../schemas/logSchema";
@@ -11,7 +10,7 @@ export default new Event("messageDelete", async (message) => {
   try {
     if (message.author?.bot) return;
 
-    const logData = await logSchema.findOne({ Guild: message.guild.id });
+    const logData = await logSchema.findOne({ where: { Guild: message.guild.id } });
     if (!logData) return;
 
     const logChannel = message.guild.channels.cache.get(
@@ -82,7 +81,7 @@ export default new Event("messageDelete", async (message) => {
       .setTimestamp();
 
     await logChannel.send({ embeds: [embed] });
-  } catch (err) {
-    console.log(err);
+  } catch {
+    return;
   }
 });

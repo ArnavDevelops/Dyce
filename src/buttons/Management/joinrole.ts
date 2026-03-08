@@ -3,7 +3,7 @@ import { EmbedBuilder } from "discord.js";
 import joinRoleSchema from "../../schemas/joinRoleSchema";
 
 export default new Button("joinrolebtn", async ({ interaction }) => {
-  await joinRoleSchema.findOneAndDelete({ guildId: interaction.guild.id });
+  await joinRoleSchema.destroy({ where: { guildId: interaction.guild.id } });
 
   const embed = new EmbedBuilder()
     .setColor("Green")

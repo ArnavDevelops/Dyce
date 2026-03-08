@@ -4,7 +4,7 @@ import { Event } from "../../structures/Event";
 
 export default new Event("emojiDelete", async (emoji) => {
   try {
-    const logData = await logSchema.findOne({ Guild: emoji.guild.id });
+    const logData = await logSchema.findOne({ where: { Guild: emoji.guild.id } });
     if (!logData) return;
 
     const logChannel = emoji.guild.channels.cache.get(

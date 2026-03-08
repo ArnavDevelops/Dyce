@@ -59,7 +59,7 @@ export default new Command({
         if (!bannedID)
           return await interaction.reply({ embeds: [embed1], flags: ["Ephemeral"] });
 
-        await guild.bans.remove(user, reason).catch(async (err: Error) => {
+        await guild.bans.remove(user, reason).catch(async () => {
           const cantunbanthisUser = new EmbedBuilder()
             .setColor("Red")
             .setDescription("***:warning: I cannot unban this user.***");

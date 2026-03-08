@@ -43,7 +43,7 @@ export default new Command({
     const { guild } = interaction;
 
     const user = args.getUser("user");
-    const member = (await guild.members.fetch(user.id).catch((err: Error) => {
+    const member = (await guild.members.fetch(user.id).catch(() => {
       return;
     })) as GuildMember;
     const reason = args.getString("reason");
@@ -90,7 +90,7 @@ export default new Command({
             name: "Reason",
             value: `${reason}`,
           });
-        await user.send({ embeds: [dmEmbed] }).catch((err: Error) => {
+        await user.send({ embeds: [dmEmbed] }).catch(() => {
           return;
         });
 
@@ -106,13 +106,13 @@ export default new Command({
         await interaction.reply({ embeds: [embed2] });
         return await guild.bans
           .create(user.id, { reason: reason })
-          .catch((err: Error) => {
+          .catch(() => {
             return;
           });
       } else if (deletemsgs == true) {
         await guild.bans
-          .create(user.id, { reason: reason, deleteMessageDays: 7 })
-          .catch((err: Error) => {
+          .create(user.id, { reason: reason, deleteMessageSeconds: 604800 })
+          .catch(() => {
             return;
           });
 
@@ -127,13 +127,13 @@ export default new Command({
 
         return await interaction.channel.bulkDelete(userMessages, true);
       } else if (note) {
-        await new modNotesSchema({
+        await modNotesSchema.create({
           guildId: guild.id,
           moderatorId: interaction.user.id,
           command: "/ban",
           date: Date.now(),
           note: `Moderated: ${member.user.username} | **${note}**`,
-        }).save();
+        })
       }
     } catch (err) {
       return;

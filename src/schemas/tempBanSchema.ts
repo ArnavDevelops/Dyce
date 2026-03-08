@@ -1,10 +1,43 @@
-import { Schema, model } from "mongoose";
+import { DataTypes, Model } from "sequelize";
+import sequelize from "../structures/database";
 
-const schema = new Schema({
-  guildId: String,
-  userId: String,
-  time: String,
-});
+interface TempBanAttributes {
+  guildId: string;
+  userId: string;
+  time: number;
+}
 
-const tempBanSchema = model("tempBan", schema);
-export default tempBanSchema
+class TempBan
+    extends Model<TempBanAttributes, TempBanAttributes>
+    implements TempBanAttributes
+{
+  declare guildId: string;
+  declare userId: string;
+  declare time: number;
+}
+
+TempBan.init(
+    {
+      guildId: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+      },
+
+      userId: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+      },
+
+      time: {
+        type: DataTypes.NUMBER,
+        allowNull: false,
+      },
+    },
+    {
+      sequelize,
+      modelName: "tempBan",
+      timestamps: false,
+    }
+);
+
+export default TempBan;

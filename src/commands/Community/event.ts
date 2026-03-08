@@ -25,7 +25,7 @@ export default new Command({
     },
     {
       name: "description",
-      description: "the descripton of the event",
+      description: "the description of the event",
       type: ApplicationCommandOptionType.String,
       required: true,
     },
@@ -85,7 +85,7 @@ export default new Command({
   run: async ({ interaction, args }) => {
     const { member, user, channel, guild } = interaction;
 
-    const data = await eventsRoleSchema.findOne({ guildId: guild.id });
+    const data = await eventsRoleSchema.findOne({ where: { guildId: guild.id } });
     if (!data || !data.roleId) {
       const embed = new EmbedBuilder()
         .setDescription(
@@ -207,7 +207,7 @@ export default new Command({
     });
 
     try {
-      await new eventSchema({
+      await eventSchema.create({
         guildId: guild.id,
         msgId: message.id,
         threadId: thread.name,
@@ -219,7 +219,7 @@ export default new Command({
         startTime: timestamp,
         endTime: endTimestamp,
         timeItStarts: startTime,
-      }).save();
+      })
     } catch (err) {
       return;
     }

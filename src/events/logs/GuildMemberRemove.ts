@@ -4,7 +4,7 @@ import { Event } from "../../structures/Event";
 
 export default new Event("guildMemberRemove", async (member) => {
   try {
-    const logData = await logSchema.findOne({ Guild: member.guild.id });
+    const logData = await logSchema.findOne({ where: { Guild: member.guild.id } });
     if (!logData) return;
 
     const logChannel = member.guild.channels.cache.get(

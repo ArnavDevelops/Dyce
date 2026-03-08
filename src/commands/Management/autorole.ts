@@ -36,7 +36,7 @@ export default new Command({
       const getRole = args.getRole("role");
       const role = guild.roles.cache.get(getRole.id);
 
-      const data = await joinRoleSchema.findOne({ guildId: guild.id });
+      const data = await joinRoleSchema.findOne({ where: { guildId: guild.id } });
 
       if (data) {
         const button = new ButtonBuilder()

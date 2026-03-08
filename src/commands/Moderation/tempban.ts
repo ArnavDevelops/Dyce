@@ -13,7 +13,7 @@ import { Command } from "../../structures/Command";
 
 export default new Command({
   name: "tempban",
-  description: "Bans a user temporarialy",
+  description: "Bans a user temporarily",
   defaultMemberPermissions: ["BanMembers"],
   contexts: [InteractionContextType.Guild],
   options: [
@@ -80,8 +80,10 @@ export default new Command({
           return await interaction.reply({ embeds: [embed4], flags: ["Ephemeral"] });
 
         const data = await tempBanSchema.findOne({
-          guildId: guild.id,
-          userId: banMember.id,
+          where: {
+            guildId: guild.id,
+            userId: banMember.id,
+          }
         });
         if (data) {
           const embed = new EmbedBuilder()
@@ -102,7 +104,7 @@ export default new Command({
             )
             .addFields({ name: `Reason`, value: `${reason}` });
 
-          await banMember.send({ embeds: [dmEmbed] }).catch((err: Error) => {
+          await banMember.send({ embeds: [dmEmbed] }).catch(() => {
             return;
           });
 
@@ -116,41 +118,42 @@ export default new Command({
           await interaction.deferReply();
           await interaction
             .followUp({ embeds: [embed1] })
-            .catch((err: Error) => {
+            .catch(() => {
               return;
             });
 
           await guild.bans
             .create(banMember.id, { reason: reason })
-            .catch((err: Error) => {
+            .catch(() => {
               return;
             });
-          new tempBanSchema({
+          tempBanSchema.create({
             guildId: guild.id,
             userId: banMember.id,
             time: durationMs,
           })
-            .save()
             .then(async (data) => {
               setTimeout(async () => {
-                await guild.bans.remove(banMember.id).catch((err: Error) => {
+                await guild.bans.remove(banMember.id).catch(() => {
                   return;
                 });
-                return await tempBanSchema.deleteOne({
-                  guildId: guild.id,
-                  userId: banMember.id,
+                await tempBanSchema.destroy({
+                  where: {
+                    guildId: guild.id,
+                    userId: banMember.id,
+                  }
                 });
               }, data.time as any);
             });
 
           if (note) {
-            new modNotesSchema({
+            await modNotesSchema.create({
               guildId: guild.id,
               moderatorId: interaction.user.id,
               command: "/tempban",
               date: Date.now(),
               note: `Moderated: ${banMember.user.username} | **${note}**`,
-            }).save();
+            });
           }
         }
       }
